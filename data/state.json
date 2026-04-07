@@ -1,19 +1,21 @@
 {
-  "activeAlert": {
-    "id": "alert_1775596024790",
-    "title": "Student Unresponsive",
-    "location": "Block B · Room 203 · 2nd Floor",
-    "userName": "Shubham Jatania",
-    "role": "student",
-    "college": "MIT College of Engineering",
-    "status": "active",
-    "severity": "critical",
-    "createdAt": "2026-04-07T21:07:04.790Z",
-    "updatedAt": "2026-04-07T21:07:04.790Z",
-    "resolvedAt": null,
-    "notes": "Emergency response requested from campus UI."
-  },
+  "activeAlert": null,
   "alertHistory": [
+    {
+      "id": "alert_1775596663103",
+      "title": "Student Unresponsive",
+      "location": "Block B · Room 203 · 2nd Floor",
+      "userName": "Shubham Jatania",
+      "role": "student",
+      "college": "MIT College of Engineering",
+      "status": "resolved",
+      "severity": "critical",
+      "createdAt": "2026-04-07T21:17:43.103Z",
+      "updatedAt": "2026-04-07T21:17:46.164Z",
+      "resolvedAt": "2026-04-07T21:17:46.164Z",
+      "notes": "Emergency response requested from campus UI.",
+      "resolvedBy": "Shubham Jatania"
+    },
     {
       "id": "alert_1775596024790",
       "title": "Student Unresponsive",
@@ -21,12 +23,13 @@
       "userName": "Shubham Jatania",
       "role": "student",
       "college": "MIT College of Engineering",
-      "status": "active",
+      "status": "resolved",
       "severity": "critical",
       "createdAt": "2026-04-07T21:07:04.790Z",
-      "updatedAt": "2026-04-07T21:07:04.790Z",
-      "resolvedAt": null,
-      "notes": "Emergency response requested from campus UI."
+      "updatedAt": "2026-04-07T21:17:36.402Z",
+      "resolvedAt": "2026-04-07T21:17:36.402Z",
+      "notes": "Emergency response requested from campus UI.",
+      "resolvedBy": "Shubham Jatania"
     },
     {
       "id": "alert_1775589274405",
@@ -44,5 +47,5 @@
       "resolvedBy": "Shubham"
     }
   ],
-  "lastUpdatedAt": "2026-04-07T21:07:04.790Z"
+  "lastUpdatedAt": "2026-04-07T21:17:46.164Z"
 }
