@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedResponse — Campus Emergency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0c;
+  --surface: #111115;
+  --surface2: #17171d;
+  --surface3: #1e1e26;
+  --border: #ffffff0f;
+  --border2: #ffffff1a;
+  --text: #f0f0f5;
+  --text2: #9090a8;
+  --text3: #55556a;
+  --red: #ff2d55;
+  --red2: #ff6b81;
+  --red-bg: #ff2d5510;
+  --red-glow: #ff2d5530;
+  --amber: #ffb800;
+  --amber-bg: #ffb80010;
+  --green: #30e080;
+  --green-bg: #30e08010;
+  --blue: #4f8eff;
+  --blue-bg: #4f8eff10;
+  --pulse-color: #ff2d55;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ─── NOISE TEXTURE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ─── LOGIN SCREEN ─── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-bg-orb {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #ff2d5514 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -60%);
+  pointer-events: none;
+}
+
+.login-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  pointer-events: none;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+
+.logo-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 24px var(--red-glow), 0 0 48px var(--red-bg);
+  animation: logo-breathe 3s ease-in-out infinite;
+}
+
+@keyframes logo-breathe {
+  0%, 100% { box-shadow: 0 0 24px var(--red-glow), 0 0 48px var(--red-bg); }
+  50% { box-shadow: 0 0 40px #ff2d5550, 0 0 80px #ff2d5520; }
+}
+
+.logo-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.logo-name span { color: var(--red); }
+
+.login-headline {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+.login-headline em { color: var(--red); font-style: normal; }
+
+.login-sub {
+  text-align: center;
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-bg);
+}
+.form-input::placeholder { color: var(--text3); }
+
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.role-btn {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+.role-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+.role-btn.active {
+  border-color: var(--red);
+  background: var(--red-bg);
+  color: var(--text);
+}
+.role-icon { font-size: 20px; }
+.role-label { font-weight: 500; }
+.role-sub { font-size: 10px; color: var(--text3); }
+
+.btn-primary {
+  width: 100%;
+  background: var(--red);
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px var(--red-glow);
+}
+.btn-primary:active { transform: translateY(0); }
+
+/* ─── MAIN APP ─── */
+#app { display: none; }
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,12,0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 16px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  color: var(--text3);
+  min-width: 60px;
+}
+.nav-item:hover { color: var(--text2); }
+.nav-item.active { color: var(--red); }
+
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ─── PAGE CONTAINER ─── */
+.page { display: none; min-height: calc(100vh - 70px); padding-bottom: 80px; }
+.page.active { display: block; }
+
+/* ─── TOP BAR ─── */
+.top-bar {
+  padding: 20px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.top-bar-logo {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.top-bar-logo .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.top-bar-right { display: flex; align-items: center; gap: 10px; }
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 6px 12px 6px 6px;
+}
+.user-av {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+.user-name { font-size: 12px; font-weight: 500; color: var(--text2); }
+
+.notif-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+.notif-dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 8px; height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+
+/* ─── SOS SCREEN ─── */
+.sos-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+  gap: 28px;
+}
+
+.location-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--text2);
+  width: 100%;
+  max-width: 400px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.location-pill:hover { border-color: var(--border2); }
+.location-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.location-text { flex: 1; font-family: var(--font-mono); font-size: 11px; }
+.location-change { font-size: 10px; color: var(--red); text-decoration: underline; cursor: pointer; }
+
+/* SOS RING SYSTEM */
+.sos-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 260px;
+  height: 260px;
+}
+
+.sos-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--red);
+  animation: expand 3s ease-out infinite;
+}
+.sos-ring:nth-child(1) { width: 210px; height: 210px; opacity: 0.4; animation-delay: 0s; }
+.sos-ring:nth-child(2) { width: 240px; height: 240px; opacity: 0.2; animation-delay: 0.8s; }
+.sos-ring:nth-child(3) { width: 260px; height: 260px; opacity: 0.1; animation-delay: 1.6s; }
+
+@keyframes expand {
+  0% { transform: scale(0.7); opacity: 0.6; }
+  100% { transform: scale(1.05); opacity: 0; }
+}
+
+.sos-btn {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff5370, #ff2d55 60%, #cc0033);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow:
+    0 0 0 3px #0a0a0c,
+    0 0 0 5px var(--red-glow),
+    0 20px 60px var(--red-glow),
+    0 4px 24px rgba(0,0,0,0.6);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+  animation: sos-idle 4s ease-in-out infinite;
+}
+
+@keyframes sos-idle {
+  0%, 100% { box-shadow: 0 0 0 3px #0a0a0c, 0 0 0 5px var(--red-glow), 0 20px 60px var(--red-glow), 0 4px 24px rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 0 0 3px #0a0a0c, 0 0 0 8px #ff2d5540, 0 24px 80px #ff2d5540, 0 4px 24px rgba(0,0,0,0.6); }
+}
+
+.sos-btn:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 3px #0a0a0c,
+    0 0 0 10px #ff2d5550,
+    0 28px 80px #ff2d5550,
+    0 8px 32px rgba(0,0,0,0.7);
+}
+.sos-btn:active { transform: scale(0.97); }
+
+.sos-btn-label {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.sos-btn-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sos-hint {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+/* Quick action cards */
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.quick-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.quick-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--border) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.quick-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.quick-card:hover::before { opacity: 1; }
+
+.quick-card-icon { font-size: 22px; }
+.quick-card-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+.quick-card-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+
+.quick-card.urgent { border-color: var(--red-bg); }
+.quick-card.urgent .quick-card-title { color: var(--red2); }
+
+/* Contacts */
+.contacts-strip {
+  width: 100%;
+  max-width: 400px;
+}
+.contacts-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.contact-row:hover { border-color: var(--border2); }
+.contact-left { display: flex; align-items: center; gap: 10px; }
+.contact-av {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.contact-name { font-size: 13px; font-weight: 500; }
+.contact-role { font-size: 11px; color: var(--text3); }
+.contact-call {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--green);
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.06em;
+}
+
+/* ─── ALERT ACTIVE SCREEN ─── */
+.alert-page { padding: 0 20px; }
+
+.alert-banner {
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.alert-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, #ff2d5520 0%, transparent 70%);
+  pointer-events: none;
+}
+.alert-pulse {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  margin-top: 3px;
+  animation: pulse-badge 1.2s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { box-shadow: 0 0 0 0 var(--red-glow); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+.alert-level-tag {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--red2);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.alert-title-main {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.alert-loc {
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.alert-timer-block {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.alert-timer {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 500;
+  color: var(--red);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.alert-timer-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.dispatch-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dispatch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.d-icon { font-size: 24px; }
+.d-name { font-size: 12px; font-weight: 600; }
+.d-status {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.ds-sent { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+.ds-route { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue); }
+.ds-ok { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+
+.instructions-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.instructions-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--amber);
+}
+.instructions-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+.i-step { display: flex; gap: 14px; align-items: flex-start; }
+.i-num {
+  min-width: 26px; height: 26px;
+  border-radius: 8px;
+  background: var(--amber);
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.i-text { font-size: 13px; line-height: 1.6; color: var(--text); padding-top: 4px; }
+.i-text strong { color: var(--amber); font-weight: 600; }
+
+.alert-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-resolve {
+  padding: 14px;
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  color: var(--green);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-resolve:hover { background: var(--green); color: #000; }
+.btn-escalate {
+  padding: 14px;
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-escalate:hover { background: var(--red); color: #fff; }
+
+/* ─── GUIDES SCREEN ─── */
+.guides-page { padding: 0 20px; }
+
+.page-heading {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.page-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+
+.guide-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.guide-search input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-family: var(--font-body); font-size: 13px; flex: 1;
+}
+.guide-search input::placeholder { color: var(--text3); }
+
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.f-chip {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.12s;
+  letter-spacing: 0.04em;
+}
+.f-chip:hover { color: var(--text); }
+.f-chip.active { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+
+.guide-list { display: flex; flex-direction: column; gap: 10px; }
+
+.guide-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.guide-card:hover { border-color: var(--border2); }
+.guide-card.expanded { border-color: var(--border2); }
+
+.guide-card-top {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.guide-card.expanded .guide-card-top { border-bottom: 1px solid var(--border); }
+
+.g-emoji {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.g-info { flex: 1; }
+.g-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.g-desc { font-size: 11px; color: var(--text2); }
+.g-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.gb-crit { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+.gb-mod { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+.gb-low { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+
+.guide-steps-panel {
+  display: none;
+  padding: 16px 18px;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-card.expanded .guide-steps-panel { display: flex; }
+
+.g-step { display: flex; gap: 12px; align-items: flex-start; }
+.g-step-n {
+  min-width: 24px; height: 24px;
+  border-radius: 7px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.g-step-text { font-size: 13px; line-height: 1.6; color: var(--text); padding-top: 3px; }
+.g-step-text strong { color: var(--amber); font-weight: 600; }
+
+/* CRITICAL DO NOT section */
+.do-not-box {
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+.do-not-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--red);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.do-not-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ─── MAP SCREEN ─── */
+.map-page { padding: 0 20px; }
+
+.map-canvas {
+  width: 100%;
+  height: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.map-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.map-path {
+  position: absolute;
+  background: none;
+}
+
+.m-building {
+  position: absolute;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.m-pin {
+  position: absolute;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+}
+.m-pin-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px var(--red-glow);
+  animation: pin-pulse 2s ease-in-out infinite;
+}
+@keyframes pin-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--red-glow); }
+  50% { box-shadow: 0 0 0 8px var(--red-bg); }
+}
+
+.m-aed { position: absolute; font-size: 16px; z-index: 8; cursor: pointer; }
+
+.map-incident-label {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--red);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.map-you {
+  position: absolute;
+  font-size: 10px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 10px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  z-index: 9;
+}
+
+.resource-list { display: flex; flex-direction: column; gap: 8px; }
+.resource-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.resource-row:hover { border-color: var(--border2); }
+.resource-left { display: flex; align-items: center; gap: 12px; }
+.resource-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.resource-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.resource-dist { font-size: 11px; color: var(--text2); font-family: var(--font-mono); }
+.resource-status {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+/* ─── STAFF DASHBOARD ─── */
+.staff-page { padding: 0 20px; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+.stat-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-note { font-size: 11px; color: var(--text2); }
+.sv-red { color: var(--red); }
+.sv-green { color: var(--green); }
+.sv-amber { color: var(--amber); }
+
+.incidents-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.card-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-head-title {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.card-head-action {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--red);
+  cursor: pointer;
+}
+
+.incident-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.incident-item:last-child { border-bottom: none; }
+.incident-item:hover { background: var(--surface2); }
+.inc-sev {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.inc-sev-high { background: var(--red); box-shadow: 0 0 6px var(--red-glow); }
+.inc-sev-med { background: var(--amber); }
+.inc-sev-low { background: var(--green); }
+.inc-info { flex: 1; }
+.inc-type { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.inc-meta { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+.inc-badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.ib-active { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+.ib-resolved { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+.ib-monitor { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+
+.personnel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.p-item {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.p-item:last-child { border-bottom: none; }
+.p-left { display: flex; align-items: center; gap: 10px; }
+.p-av {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.p-name { font-size: 13px; font-weight: 500; }
+.p-role { font-size: 10px; color: var(--text3); }
+.avail-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.ap-on { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+.ap-busy { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+.ap-off { background: var(--surface3); color: var(--text3); border: 1px solid var(--border2); }
+
+/* ─── SOS SENT STATE ─── */
+.sos-sent-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,12,0.95);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 24px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+.sos-sent-overlay.visible { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.sent-check {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--green-bg);
+  border: 2px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.sent-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+}
+.sent-sub {
+  font-size: 14px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 320px;
+}
+.sent-location {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 320px;
+}
+.sent-location-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.sent-location-val { font-size: 14px; font-weight: 500; color: var(--green); }
+
+.sent-do-list {
+  width: 100%;
+  max-width: 320px;
+}
+.sent-do-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--amber);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sent-do-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sent-do-num {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--amber);
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sent-do-text { font-size: 13px; color: var(--text); line-height: 1.5; padding-top: 2px; }
+
+.btn-dismiss {
+  padding: 14px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%; max-width: 320px;
+}
+.btn-dismiss:hover { border-color: var(--red); color: var(--red); }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%; transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 300;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toast.show { opacity: 1; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ─── UTILITY ─── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN SCREEN ═══════════ -->
+<div id="login-screen">
+  <div class="login-bg-orb"></div>
+  <div class="login-bg-grid"></div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🚨</div>
+      <div class="logo-name">Med<span>Response</span></div>
+    </div>
+
+    <h1 class="login-headline">Emergency help,<br><em>one tap away</em></h1>
+    <p class="login-sub">Campus emergency system. Press SOS → medical staff are notified instantly with your exact location.</p>
+
+    <div class="form-group">
+      <label class="form-label">College / Institution</label>
+      <input class="form-input" type="text" placeholder="e.g. MIT College of Engineering" id="college-input" value="MIT College of Engineering"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Your Name</label>
+      <input class="form-input" type="text" placeholder="Full name" id="name-input"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">I am a</label>
+      <div class="role-grid">
+        <button class="role-btn active" onclick="setRole(this,'student')" data-role="student">
+          <span class="role-icon">🎓</span>
+          <div>
+            <div class="role-label">Student</div>
+            <div class="role-sub">Report emergencies</div>
+          </div>
+        </button>
+        <button class="role-btn" onclick="setRole(this,'staff')" data-role="staff">
+          <span class="role-icon">👩‍⚕️</span>
+          <div>
+            <div class="role-label">Medical Staff</div>
+            <div class="role-sub">Receive & respond</div>
+          </div>
+        </button>
+        <button class="role-btn" onclick="setRole(this,'teacher')" data-role="teacher">
+          <span class="role-icon">📚</span>
+          <div>
+            <div class="role-label">Faculty</div>
+            <div class="role-sub">Report & assist</div>
+          </div>
+        </button>
+        <button class="role-btn" onclick="setRole(this,'admin')" data-role="admin">
+          <span class="role-icon">🏛️</span>
+          <div>
+            <div class="role-label">Admin</div>
+            <div class="role-sub">Full access</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="doLogin()">Enter Campus Emergency System →</button>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-logo">
+      <div class="dot"></div>
+      <span>MedResponse</span>
+    </div>
+    <div class="top-bar-right">
+      <div class="user-chip">
+        <div class="user-av">👤</div>
+        <span class="user-name" id="display-name">Student</span>
+      </div>
+      <div class="notif-btn" onclick="showToast('No new alerts')">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PAGE: SOS ─── -->
+  <div class="page active" id="page-sos">
+    <div class="sos-page">
+
+      <div class="location-pill">
+        <div class="location-dot"></div>
+        <span class="location-text" id="location-text">Block B · Room 203 · 2nd Floor</span>
+        <span class="location-change" onclick="changeLocation()">Change</span>
+      </div>
+
+      <!-- BIG SOS BUTTON -->
+      <div class="sos-zone">
+        <div class="sos-ring"></div>
+        <div class="sos-ring"></div>
+        <div class="sos-ring"></div>
+        <button class="sos-btn" onclick="triggerSOS()">
+          <span class="sos-btn-label">SOS</span>
+          <span class="sos-btn-sub">HOLD TO SEND</span>
+        </button>
+      </div>
+
+      <div class="sos-hint">🔒 Location sent once per incident · No duplicate alerts</div>
+
+      <!-- Quick actions -->
+      <div class="quick-grid">
+        <div class="quick-card urgent" onclick="showPage('guides')">
+          <div class="quick-card-icon">📋</div>
+          <div class="quick-card-title">First Aid Guide</div>
+          <div class="quick-card-desc">Step-by-step emergency instructions</div>
+        </div>
+        <div class="quick-card" onclick="showPage('map')">
+          <div class="quick-card-icon">🗺️</div>
+          <div class="quick-card-title">Find Medical Room</div>
+          <div class="quick-card-desc">Nearest AED & first aid kits</div>
+        </div>
+        <div class="quick-card" onclick="showPage('map')">
+          <div class="quick-card-icon">❤️</div>
+          <div class="quick-card-title">Nearest AED</div>
+          <div class="quick-card-desc">Block A Lobby · 80m away</div>
+        </div>
+        <div class="quick-card" onclick="showPage('alert')">
+          <div class="quick-card-icon">👁️</div>
+          <div class="quick-card-title">Active Alert</div>
+          <div class="quick-card-desc">View current incident status</div>
+        </div>
+      </div>
+
+      <!-- Emergency contacts -->
+      <div class="contacts-strip">
+        <div class="contacts-label">Emergency Contacts</div>
+        <div class="contact-row">
+          <div class="contact-left">
+            <div class="contact-av">🏥</div>
+            <div>
+              <div class="contact-name">Campus Medical Room</div>
+              <div class="contact-role">Block C · Room 001 · 24/7</div>
+            </div>
+          </div>
+          <div class="contact-call">CALL</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-left">
+            <div class="contact-av">👩‍⚕️</div>
+            <div>
+              <div class="contact-name">Dr. Sharma (On Duty)</div>
+              <div class="contact-role">Campus Medical Officer</div>
+            </div>
+          </div>
+          <div class="contact-call">CALL</div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-left">
+            <div class="contact-av">🚨</div>
+            <div>
+              <div class="contact-name">College Security</div>
+              <div class="contact-role">Gate · Ext. 100</div>
+            </div>
+          </div>
+          <div class="contact-call">CALL</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /page-sos -->
+
+  <!-- ─── PAGE: ALERT ACTIVE ─── -->
+  <div class="page" id="page-alert">
+    <div class="alert-page">
+
+      <div class="alert-banner">
+        <div class="alert-pulse"></div>
+        <div class="alert-banner-text">
+          <div class="alert-level-tag">⚡ Active Emergency · Medical Response Sent</div>
+          <div class="alert-title-main">Student Unresponsive</div>
+          <div class="alert-loc">📍 Block B · Room 203 · 2nd Floor</div>
+        </div>
+      </div>
+
+      <div class="alert-timer-block">
+        <div class="alert-timer" id="alert-clock">00:00</div>
+        <div class="alert-timer-label">Time Since Alert</div>
+      </div>
+
+      <div class="dispatch-row">
+        <div class="dispatch-card">
+          <div class="d-icon">🏥</div>
+          <div class="d-name">Medical</div>
+          <div class="d-status ds-route">EN ROUTE</div>
+        </div>
+        <div class="dispatch-card">
+          <div class="d-icon">🔒</div>
+          <div class="d-name">Security</div>
+          <div class="d-status ds-ok">ALERTED</div>
+        </div>
+        <div class="dispatch-card">
+          <div class="d-icon">📞</div>
+          <div class="d-name">Principal</div>
+          <div class="d-status ds-sent">NOTIFIED</div>
+        </div>
+      </div>
+
+      <div class="instructions-card">
+        <div class="instructions-head">⚠️ While you wait — do this NOW</div>
+        <div class="instructions-body">
+          <div class="i-step">
+            <div class="i-num">1</div>
+            <div class="i-text"><strong>Clear the area.</strong> Ask everyone except 1–2 helpers to step outside. Less chaos = better help.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">2</div>
+            <div class="i-text"><strong>Do NOT move the student</strong> unless they are in immediate danger (fire, fall risk).</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">3</div>
+            <div class="i-text"><strong>Recovery position:</strong> Gently roll them onto their side. This keeps the airway open.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">4</div>
+            <div class="i-text"><strong>No water on the face.</strong> No slapping. Just keep them comfortable and watch breathing.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">5</div>
+            <div class="i-text">Send someone to the <strong>building entrance</strong> to guide medical staff directly to the room.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-actions">
+        <button class="btn-resolve" onclick="resolveAlert()">✓ Mark Resolved</button>
+        <button class="btn-escalate" onclick="showToast('Escalating to 108...')">🚑 Call Ambulance</button>
+      </div>
+    </div>
+  </div><!-- /page-alert -->
+
+  <!-- ─── PAGE: GUIDES ─── -->
+  <div class="page" id="page-guides">
+    <div class="guides-page">
+      <div class="page-heading">First Aid Guides</div>
+      <p class="page-sub">Tap any emergency to see exactly what to do. Written for people with zero medical training.</p>
+
+      <div class="guide-search">
+        <span style="font-size:16px;color:var(--text3)">🔍</span>
+        <input type="text" placeholder="Search emergencies..." oninput="filterGuides(this.value)"/>
+      </div>
+
+      <div class="filter-chips">
+        <div class="f-chip active" onclick="filterCat(this,'all')">All</div>
+        <div class="f-chip" onclick="filterCat(this,'critical')">Critical</div>
+        <div class="f-chip" onclick="filterCat(this,'moderate')">Moderate</div>
+        <div class="f-chip" onclick="filterCat(this,'stable')">Stable</div>
+      </div>
+
+      <div class="guide-list" id="guide-list">
+
+        <!-- FAINTING -->
+        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">😵</div>
+            <div class="g-info">
+              <div class="g-title">Fainting / Unconscious</div>
+              <div class="g-desc">Student collapsed, unresponsive or dizzy</div>
+            </div>
+            <div class="g-badge gb-crit">CRITICAL</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Press SOS immediately</strong> — even if they seem fine. Always alert medical.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Clear the crowd.</strong> Ask everyone except 1 helper to leave. Do NOT let people crowd around.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Recovery position:</strong> Gently roll them on their side. Tilt chin slightly up. This keeps airway open.</div></div>
+            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Check if they're <strong>breathing</strong>. Watch the chest. If not breathing, start CPR.</div></div>
+            <div class="g-step"><div class="g-step-n">5</div><div class="g-step-text">Stay with them and <strong>talk calmly</strong>. Send someone to guide medical staff to your exact room.</div></div>
+            <div class="do-not-box">
+              <div class="do-not-label">🚫 Do NOT</div>
+              <div class="do-not-text">Throw water on their face · Slap or shake them · Lift them up immediately · Give food or water · Let 10 people crowd them</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARDIAC ARREST -->
+        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">❤️</div>
+            <div class="g-info">
+              <div class="g-title">Cardiac Arrest / No Pulse</div>
+              <div class="g-desc">Not breathing, no pulse, unresponsive</div>
+            </div>
+            <div class="g-badge gb-crit">CRITICAL</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Call SOS NOW</strong> and shout for someone to fetch the nearest AED (Block A Lobby).</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Chest compressions:</strong> 30 hard, fast pushes to center of chest. Use both hands, arms straight.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Rescue breaths:</strong> Tilt head back, lift chin, seal over mouth, give 2 breaths.</div></div>
+            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Repeat <strong>30 compressions → 2 breaths</strong> until AED arrives or they regain consciousness.</div></div>
+            <div class="do-not-box">
+              <div class="do-not-label">🚫 Do NOT</div>
+              <div class="do-not-text">Stop CPR until trained help takes over · Leave them alone · Wait to see if they recover</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEIZURE -->
+        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">⚡</div>
+            <div class="g-info">
+              <div class="g-title">Seizure / Convulsions</div>
+              <div class="g-desc">Shaking, jerking, loss of control</div>
+            </div>
+            <div class="g-badge gb-crit">CRITICAL</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Time it.</strong> If seizure lasts over 5 minutes, it's a medical emergency — call ambulance.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Protect their head.</strong> Put a folded jacket or bag under their head. Move hard objects away.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">When shaking stops, <strong>gently roll to recovery position</strong> and keep airway clear.</div></div>
+            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Stay with them. They may be confused after — talk calmly, reassure them.</div></div>
+            <div class="do-not-box">
+              <div class="do-not-label">🚫 Do NOT</div>
+              <div class="do-not-text">Hold them down · Put anything in their mouth · Give water during the seizure</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALLERGIC REACTION -->
+        <div class="guide-card" data-cat="moderate" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">🤧</div>
+            <div class="g-info">
+              <div class="g-title">Severe Allergic Reaction</div>
+              <div class="g-desc">Swelling, hives, breathing difficulty</div>
+            </div>
+            <div class="g-badge gb-mod">MODERATE</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text">Ask if they carry an <strong>EpiPen</strong>. Help them use it if needed.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">If breathing is hard, have them <strong>sit upright</strong>. If dizzy, have them lie down with legs raised.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Do not give antihistamines</strong> in place of epinephrine — they work too slowly for severe reactions.</div></div>
+          </div>
+        </div>
+
+        <!-- CUT / BLEEDING -->
+        <div class="guide-card" data-cat="moderate" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">🩸</div>
+            <div class="g-info">
+              <div class="g-title">Heavy Bleeding / Deep Cut</div>
+              <div class="g-desc">Wound not stopping, significant blood loss</div>
+            </div>
+            <div class="g-badge gb-mod">MODERATE</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Apply direct pressure</strong> with a clean cloth or clothing. Press hard and don't release.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">If cloth soaks through, add more on top — <strong>don't remove</strong> the original.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Elevate</strong> the injured part above heart level if possible.</div></div>
+            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Get to the <strong>medical room</strong> or wait for staff if bleeding is severe.</div></div>
+          </div>
+        </div>
+
+        <!-- FRACTURE -->
+        <div class="guide-card" data-cat="stable" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">🦴</div>
+            <div class="g-info">
+              <div class="g-title">Fracture / Bone Injury</div>
+              <div class="g-desc">Suspected broken bone, deformity</div>
+            </div>
+            <div class="g-badge gb-low">STABLE</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Do not move the limb.</strong> Keep the student still and calm.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">Improvise a splint with a <strong>rolled bag, ruler, or cloth</strong> to immobilize.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">Wrap ice in cloth and apply to reduce swelling. <strong>Never apply ice directly.</strong></div></div>
+          </div>
+        </div>
+
+        <!-- HEAT EXHAUSTION -->
+        <div class="guide-card" data-cat="stable" onclick="this.classList.toggle('expanded')">
+          <div class="guide-card-top">
+            <div class="g-emoji">🥵</div>
+            <div class="g-info">
+              <div class="g-title">Heat Exhaustion</div>
+              <div class="g-desc">Heavy sweating, weakness, dizziness</div>
+            </div>
+            <div class="g-badge gb-low">STABLE</div>
+          </div>
+          <div class="guide-steps-panel">
+            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text">Move them to a <strong>cool, shaded, ventilated</strong> area immediately.</div></div>
+            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">Give <strong>cool water</strong> to sip slowly if they are conscious and can swallow.</div></div>
+            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">Apply cool wet cloth to <strong>forehead, neck, and wrists</strong>.</div></div>
+            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">If they don't improve in 15 min or faint, <strong>press SOS</strong>.</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /page-guides -->
+
+  <!-- ─── PAGE: MAP ─── -->
+  <div class="page" id="page-map">
+    <div class="map-page">
+      <div class="page-heading">Campus Map</div>
+      <p class="page-sub">AED units, first aid kits, and the medical room. In an emergency, go to the nearest one.</p>
+
+      <div class="map-canvas">
+        <div class="map-grid-bg"></div>
+
+        <!-- Buildings -->
+        <div class="m-building" style="left:8%;top:10%;width:20%;height:24%">BLOCK A<br>CSE/IT</div>
+        <div class="m-building" style="left:34%;top:10%;width:20%;height:24%">BLOCK B<br>ECE/ME</div>
+        <div class="m-building" style="left:60%;top:10%;width:24%;height:24%">LIBRARY</div>
+        <div class="m-building" style="left:8%;top:55%;width:25%;height:22%">CANTEEN</div>
+        <div class="m-building" style="left:40%;top:55%;width:20%;height:22%">BLOCK C<br>MECH</div>
+        <div class="m-building" style="left:67%;top:55%;width:22%;height:22%">SPORTS<br>COMPLEX</div>
+
+        <!-- YOU ARE HERE -->
+        <div class="map-you" style="left:41%;top:26%">📍 YOU</div>
+
+        <!-- Active incident -->
+        <div class="m-pin" style="left:43%;top:22%">
+          <div class="m-pin-dot"></div>
+        </div>
+
+        <!-- AED markers -->
+        <div class="m-aed" style="left:17%;top:40%" title="AED · Block A Lobby">❤️</div>
+        <div class="m-aed" style="left:62%;top:40%" title="AED · Library">❤️</div>
+        <div class="m-aed" style="left:47%;top:72%" title="Medical Room">🏥</div>
+        <div class="m-aed" style="left:20%;top:72%" title="First Aid Kit · Canteen">🩹</div>
+
+        <div class="map-incident-label">🔴 Active Incident · Block B Rm 203</div>
+      </div>
+
+      <div class="contacts-label" style="margin-bottom:12px">Medical Resources</div>
+      <div class="resource-list">
+        <div class="resource-row">
+          <div class="resource-left">
+            <div class="resource-icon">❤️</div>
+            <div>
+              <div class="resource-name">AED Unit — Block A Lobby</div>
+              <div class="resource-dist">~80m · Ground Floor · Near entrance</div>
+            </div>
+          </div>
+          <div class="resource-status">AVAILABLE</div>
+        </div>
+        <div class="resource-row">
+          <div class="resource-left">
+            <div class="resource-icon">❤️</div>
+            <div>
+              <div class="resource-name">AED Unit — Library Floor 1</div>
+              <div class="resource-dist">~140m · Near circulation desk</div>
+            </div>
+          </div>
+          <div class="resource-status">AVAILABLE</div>
+        </div>
+        <div class="resource-row">
+          <div class="resource-left">
+            <div class="resource-icon">🏥</div>
+            <div>
+              <div class="resource-name">Medical Room — Block C</div>
+              <div class="resource-dist">~200m · Ground Floor · Room 001</div>
+            </div>
+          </div>
+          <div class="resource-status">AVAILABLE</div>
+        </div>
+        <div class="resource-row">
+          <div class="resource-left">
+            <div class="resource-icon">🩹</div>
+            <div>
+              <div class="resource-name">First Aid Kit — Canteen</div>
+              <div class="resource-dist">~110m · Behind serving counter</div>
+            </div>
+          </div>
+          <div class="resource-status">AVAILABLE</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /page-map -->
+
+  <!-- ─── PAGE: STAFF DASHBOARD ─── -->
+  <div class="page" id="page-staff">
+    <div class="staff-page">
+      <div class="page-heading">Staff Dashboard</div>
+      <p class="page-sub">Real-time incident overview and personnel status.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">Active Alerts</div>
+          <div class="stat-val sv-red">1</div>
+          <div class="stat-note">Block B · Room 203</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Resolved Today</div>
+          <div class="stat-val sv-green">3</div>
+          <div class="stat-note">All within 8 min avg</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Response Time</div>
+          <div class="stat-val sv-amber">3m</div>
+          <div class="stat-note">Avg this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Staff On Duty</div>
+          <div class="stat-val">4</div>
+          <div class="stat-note">2 available now</div>
+        </div>
+      </div>
+
+      <div class="incidents-card">
+        <div class="card-head">
+          <div class="card-head-title">Incident Log</div>
+          <div class="card-head-action">Export</div>
+        </div>
+        <div class="incident-item">
+          <div class="inc-sev inc-sev-high"></div>
+          <div class="inc-info">
+            <div class="inc-type">Student Unresponsive — Fainting</div>
+            <div class="inc-meta">Block B · Rm 203 · 2 min ago</div>
+          </div>
+          <div class="inc-badge ib-active">ACTIVE</div>
+        </div>
+        <div class="incident-item">
+          <div class="inc-sev inc-sev-med"></div>
+          <div class="inc-info">
+            <div class="inc-type">Allergic Reaction</div>
+            <div class="inc-meta">Canteen · 09:14 AM</div>
+          </div>
+          <div class="inc-badge ib-resolved">RESOLVED</div>
+        </div>
+        <div class="incident-item">
+          <div class="inc-sev inc-sev-high"></div>
+          <div class="inc-info">
+            <div class="inc-type">Seizure</div>
+            <div class="inc-meta">Block A · Lab 3 · Yesterday</div>
+          </div>
+          <div class="inc-badge ib-resolved">RESOLVED</div>
+        </div>
+        <div class="incident-item">
+          <div class="inc-sev inc-sev-low"></div>
+          <div class="inc-info">
+            <div class="inc-type">Fracture — Sports Complex</div>
+            <div class="inc-meta">Sports Ground · Yesterday</div>
+          </div>
+          <div class="inc-badge ib-resolved">RESOLVED</div>
+        </div>
+      </div>
+
+      <div class="personnel-card">
+        <div class="card-head">
+          <div class="card-head-title">Medical Personnel</div>
+        </div>
+        <div class="p-item">
+          <div class="p-left">
+            <div class="p-av">👩‍⚕️</div>
+            <div>
+              <div class="p-name">Dr. Priya Sharma</div>
+              <div class="p-role">Campus Medical Officer</div>
+            </div>
+          </div>
+          <div class="avail-pill ap-route" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)">EN ROUTE</div>
+        </div>
+        <div class="p-item">
+          <div class="p-left">
+            <div class="p-av">🧑‍⚕️</div>
+            <div>
+              <div class="p-name">Nurse Rajan</div>
+              <div class="p-role">First Aid Coordinator</div>
+            </div>
+          </div>
+          <div class="avail-pill ap-on">AVAILABLE</div>
+        </div>
+        <div class="p-item">
+          <div class="p-left">
+            <div class="p-av">👨‍⚕️</div>
+            <div>
+              <div class="p-name">Dr. Anil Mehta</div>
+              <div class="p-role">Visiting Physician</div>
+            </div>
+          </div>
+          <div class="avail-pill ap-busy">BUSY</div>
+        </div>
+        <div class="p-item">
+          <div class="p-left">
+            <div class="p-av">👩‍⚕️</div>
+            <div>
+              <div class="p-name">Nurse Kavya</div>
+              <div class="p-role">Triage Nurse</div>
+            </div>
+          </div>
+          <div class="avail-pill ap-on">AVAILABLE</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /page-staff -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showPage('sos')" id="nav-sos">
+      <div class="nav-icon">🚨</div>
+      <div class="nav-label">SOS</div>
+    </button>
+    <button class="nav-item" onclick="showPage('alert')" id="nav-alert">
+      <div class="nav-icon">⚡</div>
+      <div class="nav-label">Alert</div>
+    </button>
+    <button class="nav-item" onclick="showPage('guides')" id="nav-guides">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">Guides</div>
+    </button>
+    <button class="nav-item" onclick="showPage('map')" id="nav-map">
+      <div class="nav-icon">🗺️</div>
+      <div class="nav-label">Map</div>
+    </button>
+    <button class="nav-item" onclick="showPage('staff')" id="nav-staff">
+      <div class="nav-icon">👁️</div>
+      <div class="nav-label">Staff</div>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- SOS SENT OVERLAY -->
+<div class="sos-sent-overlay" id="sos-overlay">
+  <div class="sent-check">✓</div>
+  <div class="sent-title">Help is on the way</div>
+  <div class="sent-sub">Medical staff have been notified with your exact location. Stay calm — they're coming.</div>
+
+  <div class="sent-location">
+    <div class="sent-location-label">Alert sent from</div>
+    <div class="sent-location-val" id="sent-loc-text">Block B · Room 203 · 2nd Floor</div>
+  </div>
+
+  <div class="sent-do-list">
+    <div class="sent-do-label">While you wait</div>
+    <div class="sent-do-item">
+      <div class="sent-do-num">1</div>
+      <div class="sent-do-text"><strong>Clear the room.</strong> Ask bystanders to step back — keep only 1–2 helpers.</div>
+    </div>
+    <div class="sent-do-item">
+      <div class="sent-do-num">2</div>
+      <div class="sent-do-text"><strong>Recovery position</strong> if they're unconscious — on their side, head tilted slightly back.</div>
+    </div>
+    <div class="sent-do-item">
+      <div class="sent-do-num">3</div>
+      <div class="sent-do-text"><strong>No water on face.</strong> No slapping. Just keep them safe and breathing.</div>
+    </div>
+    <div class="sent-do-item">
+      <div class="sent-do-num">4</div>
+      <div class="sent-do-text">Send someone to the <strong>building entrance</strong> to guide medical staff directly up.</div>
+    </div>
+  </div>
+
+  <button class="btn-dismiss" onclick="dismissSOS()">View Alert Status →</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───
+let selectedRole = 'student';
+let userName = '';
+let sosAlreadySentLocations = new Set();
+let alertTimerInterval = null;
+let alertSeconds = 0;
+let alertBaseTime = Date.now();
+let currentAlertId = null;
+const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const ALERT_FETCH_TTL_MS = 2500;
+let alertFetchInFlight = null;
+let lastAlertFetchAt = 0;
+let toastTimerId = null;
+
+const dom = {
+  pages: [],
+  navItems: [],
+  roleButtons: [],
+  guideCards: [],
+  filterChips: []
+};
+
+function initDomCache() {
+  dom.pages = Array.from(document.querySelectorAll('.page'));
+  dom.navItems = Array.from(document.querySelectorAll('.nav-item'));
+  dom.roleButtons = Array.from(document.querySelectorAll('.role-btn'));
+  dom.guideCards = Array.from(document.querySelectorAll('.guide-card'));
+  dom.filterChips = Array.from(document.querySelectorAll('.f-chip'));
+}
+
+initDomCache();
+
+async function apiRequest(path, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+  try {
+    const response = await fetch(API_BASE + path, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      },
+      signal: controller.signal,
+      ...options
+    });
+
+    clearTimeout(timeoutId);
+
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json') ? await response.json() : await response.text();
+    return { ok: response.ok, status: response.status, data };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return { ok: false, error };
+  }
+}
+
+function updateAlertClock() {
+  alertSeconds = Math.max(0, Math.floor((Date.now() - alertBaseTime) / 1000));
+  const m = String(Math.floor(alertSeconds / 60)).padStart(2, '0');
+  const s = String(alertSeconds % 60).padStart(2, '0');
+  const el = document.getElementById('alert-clock');
+  if (el) el.textContent = m + ':' + s;
+}
+
+function setAlertDetails(alert) {
+  if (!alert) return;
+
+  currentAlertId = alert.id || currentAlertId;
+
+  const titleEl = document.querySelector('.alert-title-main');
+  const locEl = document.querySelector('.alert-loc');
+  const sentLocEl = document.getElementById('sent-loc-text');
+
+  if (titleEl && alert.title) {
+    titleEl.textContent = alert.title;
+  }
+
+  if (locEl && alert.location) {
+    locEl.textContent = '📍 ' + alert.location;
+  }
+
+  if (sentLocEl && alert.location) {
+    sentLocEl.textContent = alert.location;
+  }
+}
+
+async function refreshCurrentAlert() {
+  const now = Date.now();
+  if (alertFetchInFlight) {
+    return alertFetchInFlight;
+  }
+
+  if (now - lastAlertFetchAt < ALERT_FETCH_TTL_MS && currentAlertId) {
+    return null;
+  }
+
+  lastAlertFetchAt = now;
+  alertFetchInFlight = apiRequest('/api/alert/current');
+  const response = await alertFetchInFlight;
+  alertFetchInFlight = null;
+
+  if (!response.ok || !response.data || !response.data.activeAlert) {
+    return null;
+  }
+
+  const activeAlert = response.data.activeAlert;
+  setAlertDetails(activeAlert);
+  startAlertTimer(activeAlert.createdAt);
+  sosAlreadySentLocations.add(activeAlert.location);
+  return activeAlert;
+}
+
+// ─── LOGIN ───
+function setRole(el, role) {
+  dom.roleButtons.forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedRole = role;
+}
+
+async function doLogin() {
+  const name = document.getElementById('name-input').value.trim();
+  const college = document.getElementById('college-input').value.trim();
+  if (!name) { showToast('Please enter your name'); return; }
+
+  const response = await apiRequest('/api/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      name,
+      college,
+      role: selectedRole
+    })
+  });
+
+  userName = name;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  if (response.ok && response.data && response.data.user) {
+    const user = response.data.user;
+    userName = user.name || name;
+    document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
+    await refreshCurrentAlert();
+    if (!currentAlertId) {
+      startAlertTimer();
+    }
+    return;
+  }
+
+  document.getElementById('display-name').textContent = name.split(' ')[0];
+  startAlertTimer();
+  showToast('Running in local mode');
+}
+
+// ─── PAGE NAVIGATION ───
+function showPage(id) {
+  dom.pages.forEach(p => p.classList.remove('active'));
+  dom.navItems.forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'alert') {
+    refreshCurrentAlert();
+  }
+  window.scrollTo(0, 0);
+}
+
+// ─── SOS ───
+async function triggerSOS() {
+  const loc = document.getElementById('location-text').textContent;
+
+  // De-duplication check
+  if (sosAlreadySentLocations.has(loc)) {
+    showToast('⚠️ Alert already sent from this location');
+    return;
+  }
+
+  const response = await apiRequest('/api/alerts', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: 'Student Unresponsive',
+      location: loc,
+      userName,
+      role: selectedRole,
+      college: document.getElementById('college-input').value.trim(),
+      severity: 'critical'
+    })
+  });
+
+  if (response.ok && response.data && response.data.alert) {
+    const alert = response.data.alert;
+    currentAlertId = alert.id;
+    sosAlreadySentLocations.add(loc);
+    setAlertDetails(alert);
+    startAlertTimer(alert.createdAt);
+    document.getElementById('sos-overlay').classList.add('visible');
+    return;
+  }
+
+  if (response.status === 409 && response.data && response.data.activeAlert) {
+    setAlertDetails(response.data.activeAlert);
+    startAlertTimer(response.data.activeAlert.createdAt);
+    sosAlreadySentLocations.add(response.data.activeAlert.location);
+    showToast(response.data.message || '⚠️ Alert already active');
+    return;
+  }
+
+  sosAlreadySentLocations.add(loc);
+  document.getElementById('sent-loc-text').textContent = loc;
+  document.getElementById('sos-overlay').classList.add('visible');
+}
+
+async function dismissSOS() {
+  document.getElementById('sos-overlay').classList.remove('visible');
+  showPage('alert');
+  await refreshCurrentAlert();
+}
+
+async function resolveAlert() {
+  if (currentAlertId) {
+    const response = await apiRequest('/api/alerts/' + currentAlertId + '/resolve', {
+      method: 'POST',
+      body: JSON.stringify({
+        resolvedBy: userName || 'Staff'
+      })
+    });
+
+    if (!response.ok) {
+      showToast((response.data && response.data.message) || 'Unable to resolve alert');
+      return;
+    }
+  }
+
+  currentAlertId = null;
+  sosAlreadySentLocations.clear();
+  showToast('✓ Incident marked as resolved');
+  setTimeout(() => showPage('sos'), 1500);
+}
+
+// ─── LOCATION PICKER ───
+const locations = [
+  'Block A · Room 101 · 1st Floor',
+  'Block A · Lab 3 · Ground Floor',
+  'Block B · Room 203 · 2nd Floor',
+  'Block B · Corridor 2B',
+  'Library · Reading Hall',
+  'Canteen · Main Hall',
+  'Block C · Room 001',
+  'Sports Complex · Ground',
+];
+let locIdx = 2;
+function changeLocation() {
+  locIdx = (locIdx + 1) % locations.length;
+  document.getElementById('location-text').textContent = locations[locIdx];
+  showToast('📍 Location updated');
+}
+
+// ─── ALERT TIMER ───
+function startAlertTimer(startIso) {
+  const startTime = startIso ? new Date(startIso).getTime() : Date.now();
+  alertBaseTime = Number.isNaN(startTime) ? Date.now() : startTime;
+  if (alertTimerInterval) clearInterval(alertTimerInterval);
+  updateAlertClock();
+  alertTimerInterval = setInterval(updateAlertClock, 1000);
+}
+
+// ─── GUIDES FILTER ───
+let activeCat = 'all';
+
+function filterGuides(query) {
+  const q = query.toLowerCase();
+  dom.guideCards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const catMatch = activeCat === 'all' || card.dataset.cat === activeCat;
+    card.style.display = (text.includes(q) && catMatch) ? '' : 'none';
+  });
+}
+
+function filterCat(el, cat) {
+  dom.filterChips.forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  activeCat = cat;
+  dom.guideCards.forEach(card => {
+    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+  });
+}
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimerId) clearTimeout(toastTimerId);
+  toastTimerId = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

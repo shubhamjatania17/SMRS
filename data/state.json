@@ -1,0 +1,21 @@
+{
+  "activeAlert": null,
+  "alertHistory": [
+    {
+      "id": "alert_1775589274405",
+      "title": "Student Unresponsive",
+      "location": "Block B · Room 203 · 2nd Floor",
+      "userName": "Shubham Kumar",
+      "role": "student",
+      "college": "MIT College of Engineering",
+      "status": "resolved",
+      "severity": "critical",
+      "createdAt": "2026-04-07T19:14:34.405Z",
+      "updatedAt": "2026-04-07T19:14:43.289Z",
+      "resolvedAt": "2026-04-07T19:14:43.289Z",
+      "notes": "Emergency response requested from campus UI.",
+      "resolvedBy": "Shubham"
+    }
+  ],
+  "lastUpdatedAt": "2026-04-07T19:14:43.289Z"
+}
