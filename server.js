@@ -113,6 +113,8 @@ const demoGuides = [
   { title: 'Heat Exhaustion', category: 'stable', severity: 'STABLE' }
 ];
 
+const STAFF_SCOPED_ROLES = new Set(['staff', 'faculty', 'teacher', 'admin']);
+
 function createDefaultState() {
   return {
     activeAlert: null,
@@ -168,6 +170,54 @@ function getHtmlPayload() {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function normalizeCollege(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function normalizeRole(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isStaffScopedRole(role) {
+  return STAFF_SCOPED_ROLES.has(normalizeRole(role));
+}
+
+function isSameCollege(left, right) {
+  const normalizedLeft = normalizeCollege(left);
+  const normalizedRight = normalizeCollege(right);
+  return Boolean(normalizedLeft) && Boolean(normalizedRight) && normalizedLeft === normalizedRight;
+}
+
+function getViewerScopeFromRequest(requestUrl, fallback = {}) {
+  const role = normalizeRole(requestUrl.searchParams.get('role') || fallback.role);
+  const college = String(requestUrl.searchParams.get('college') || fallback.college || '').trim();
+  return { role, college };
+}
+
+function canViewAlertForScope(alert, scope) {
+  if (!alert) {
+    return false;
+  }
+
+  if (!isStaffScopedRole(scope.role)) {
+    return true;
+  }
+
+  return isSameCollege(alert.college, scope.college);
+}
+
+function getScopedActiveAlert(scope) {
+  return canViewAlertForScope(state.activeAlert, scope) ? state.activeAlert : null;
+}
+
+function getScopedHistory(scope) {
+  if (!isStaffScopedRole(scope.role)) {
+    return state.alertHistory;
+  }
+
+  return state.alertHistory.filter(alert => isSameCollege(alert.college, scope.college));
 }
 
 function sendJson(res, statusCode, payload) {
@@ -229,7 +279,8 @@ function readBody(req) {
   });
 }
 
-function buildBootstrap() {
+function buildBootstrap(scope = {}) {
+  const activeAlert = getScopedActiveAlert(scope);
   return {
     appName: 'MedResponse',
     college: 'MIT College of Engineering',
@@ -238,8 +289,8 @@ function buildBootstrap() {
     resources: demoResources,
     staff: demoStaff,
     guides: demoGuides,
-    activeAlert: state.activeAlert,
-    alertHistory: state.alertHistory
+    activeAlert,
+    alertHistory: getScopedHistory(scope)
   };
 }
 
@@ -261,7 +312,7 @@ function createAlert(payload) {
     location: payload.location,
     userName: payload.userName || 'Anonymous',
     role: payload.role || 'student',
-    college: payload.college || '',
+    college: String(payload.college || '').trim(),
     status: 'active',
     severity: payload.severity || 'critical',
     createdAt,
@@ -365,21 +416,25 @@ async function routeRequest(req, res) {
   }
 
   if (req.method === 'GET' && pathname === '/api/bootstrap') {
-    sendJson(res, 200, buildBootstrap());
+    const scope = getViewerScopeFromRequest(requestUrl);
+    sendJson(res, 200, buildBootstrap(scope));
     return;
   }
 
   if (req.method === 'GET' && pathname === '/api/alert/current') {
+    const scope = getViewerScopeFromRequest(requestUrl);
+    const scopedActiveAlert = getScopedActiveAlert(scope);
     sendJson(res, 200, {
-      activeAlert: state.activeAlert,
-      ageSeconds: getAlertAgeSeconds(state.activeAlert)
+      activeAlert: scopedActiveAlert,
+      ageSeconds: getAlertAgeSeconds(scopedActiveAlert)
     });
     return;
   }
 
   if (req.method === 'GET' && pathname === '/api/alerts/history') {
+    const scope = getViewerScopeFromRequest(requestUrl);
     sendJson(res, 200, {
-      items: state.alertHistory
+      items: getScopedHistory(scope)
     });
     return;
   }
@@ -393,22 +448,27 @@ async function routeRequest(req, res) {
 
     const name = String(body.name || '').trim();
     const college = String(body.college || '').trim();
-    const role = String(body.role || 'student').trim();
+    const role = normalizeRole(body.role || 'student');
 
     if (!name) {
       sendJson(res, 400, { ok: false, message: 'Name is required' });
       return;
     }
 
+    const scope = {
+      role,
+      college: college || 'MIT College of Engineering'
+    };
+
     sendJson(res, 200, {
       ok: true,
       user: {
         name,
         displayName: name.split(/\s+/)[0],
-        college: college || 'MIT College of Engineering',
+        college: scope.college,
         role
       },
-      activeAlert: state.activeAlert
+      activeAlert: getScopedActiveAlert(scope)
     });
     return;
   }
@@ -449,6 +509,19 @@ async function routeRequest(req, res) {
     const body = await readBody(req).catch(error => ({ error }));
     if (body.error) {
       sendJson(res, 400, { ok: false, message: 'Invalid JSON body' });
+      return;
+    }
+
+    const resolverRole = normalizeRole(body.role || '');
+    const resolverCollege = String(body.college || '').trim();
+    const scopedResolver = isStaffScopedRole(resolverRole);
+
+    if (scopedResolver && state.activeAlert && !isSameCollege(state.activeAlert.college, resolverCollege)) {
+      sendJson(res, 403, {
+        ok: false,
+        message: 'You can only resolve alerts from your college',
+        activeAlert: getScopedActiveAlert({ role: resolverRole, college: resolverCollege })
+      });
       return;
     }
 

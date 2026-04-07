@@ -1744,13 +1744,13 @@ body::before {
   <div class="page" id="page-staff">
     <div class="staff-page">
       <div class="page-heading">Staff Dashboard</div>
-      <p class="page-sub">Real-time incident overview and personnel status.</p>
+      <p class="page-sub" id="staff-scope-note">Real-time incident overview and personnel status.</p>
 
       <div class="stat-row">
         <div class="stat-card">
           <div class="stat-label">Active Alerts</div>
-          <div class="stat-val sv-red">1</div>
-          <div class="stat-note">Block B · Room 203</div>
+          <div class="stat-val sv-red" id="staff-active-alert-count">0</div>
+          <div class="stat-note" id="staff-active-alert-note">No active alerts for your college</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Resolved Today</div>
@@ -1924,6 +1924,7 @@ body::before {
 // ─── STATE ───
 let selectedRole = 'student';
 let userName = '';
+let userCollege = '';
 let sosAlreadySentLocations = new Set();
 let alertTimerInterval = null;
 let alertSeconds = 0;
@@ -1955,6 +1956,53 @@ initDomCache();
 
 function isStaffDashboardOnlyRole(role) {
   return ['staff', 'faculty', 'teacher', 'admin'].includes(String(role || '').toLowerCase());
+}
+
+function normalizeCollege(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isSameCollege(alertCollege, currentUserCollege) {
+  const left = normalizeCollege(alertCollege);
+  const right = normalizeCollege(currentUserCollege);
+  return Boolean(left) && Boolean(right) && left === right;
+}
+
+function getScopeQueryString() {
+  const params = new URLSearchParams();
+  if (selectedRole) {
+    params.set('role', selectedRole);
+  }
+  if (userCollege) {
+    params.set('college', userCollege);
+  }
+  const query = params.toString();
+  return query ? '?' + query : '';
+}
+
+function updateStaffDashboard(activeAlert) {
+  if (!isStaffDashboardOnlyRole(selectedRole)) {
+    return;
+  }
+
+  const countEl = document.getElementById('staff-active-alert-count');
+  const noteEl = document.getElementById('staff-active-alert-note');
+  const scopeEl = document.getElementById('staff-scope-note');
+  const scopeCollege = userCollege || 'your college';
+
+  if (scopeEl) {
+    scopeEl.textContent = 'Showing incidents for ' + scopeCollege + '.';
+  }
+
+  const hasVisibleAlert = activeAlert && isSameCollege(activeAlert.college, userCollege);
+  if (hasVisibleAlert) {
+    if (countEl) countEl.textContent = '1';
+    if (noteEl) noteEl.textContent = (activeAlert.location || 'Campus location') + ' · ' + (activeAlert.college || scopeCollege);
+    return;
+  }
+
+  if (countEl) countEl.textContent = '0';
+  if (noteEl) noteEl.textContent = 'No active alerts for ' + scopeCollege;
 }
 
 function applyRoleAccessControls() {
@@ -2040,19 +2088,30 @@ async function refreshCurrentAlert() {
   }
 
   lastAlertFetchAt = now;
-  alertFetchInFlight = apiRequest('/api/alert/current');
+  alertFetchInFlight = apiRequest('/api/alert/current' + getScopeQueryString());
   const response = await alertFetchInFlight;
   alertFetchInFlight = null;
 
   if (!response.ok || !response.data || !response.data.activeAlert) {
+    currentAlertId = null;
     stopAlertTimer();
+    updateStaffDashboard(null);
     return null;
   }
 
   const activeAlert = response.data.activeAlert;
+
+  if (isStaffDashboardOnlyRole(selectedRole) && !isSameCollege(activeAlert.college, userCollege)) {
+    currentAlertId = null;
+    stopAlertTimer();
+    updateStaffDashboard(null);
+    return null;
+  }
+
   setAlertDetails(activeAlert);
   startAlertTimer(activeAlert.createdAt);
   sosAlreadySentLocations.add(activeAlert.location);
+  updateStaffDashboard(activeAlert);
   return activeAlert;
 }
 
@@ -2085,15 +2144,19 @@ async function doLogin() {
     const user = response.data.user;
     userName = user.name || name;
     selectedRole = user.role || selectedRole;
+    userCollege = (user.college || college || '').trim();
     document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
     applyRoleAccessControls();
+    updateStaffDashboard(null);
     showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
     await refreshCurrentAlert();
     return;
   }
 
   document.getElementById('display-name').textContent = name.split(' ')[0];
+  userCollege = college || '';
   applyRoleAccessControls();
+  updateStaffDashboard(null);
   showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
   stopAlertTimer();
   showToast('Running in local mode');
@@ -2138,7 +2201,7 @@ async function triggerSOS() {
       location: loc,
       userName,
       role: selectedRole,
-      college: document.getElementById('college-input').value.trim(),
+      college: userCollege || document.getElementById('college-input').value.trim(),
       severity: 'critical'
     })
   });
@@ -2196,7 +2259,9 @@ async function resolveAlert() {
     const response = await apiRequest('/api/alerts/' + currentAlertId + '/resolve', {
       method: 'POST',
       body: JSON.stringify({
-        resolvedBy: userName || 'Staff'
+        resolvedBy: userName || 'Staff',
+        role: selectedRole,
+        college: userCollege
       })
     });
 
