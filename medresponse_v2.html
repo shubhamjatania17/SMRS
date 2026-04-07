@@ -1953,8 +1953,12 @@ function initDomCache() {
 
 initDomCache();
 
+function isStaffDashboardOnlyRole(role) {
+  return ['staff', 'faculty', 'teacher', 'admin'].includes(String(role || '').toLowerCase());
+}
+
 function applyRoleAccessControls() {
-  const isStaffOnly = selectedRole === 'staff';
+  const isStaffOnly = isStaffDashboardOnlyRole(selectedRole);
   const navIds = ['sos', 'alert', 'guides', 'map', 'staff'];
 
   navIds.forEach(id => {
@@ -2041,6 +2045,7 @@ async function refreshCurrentAlert() {
   alertFetchInFlight = null;
 
   if (!response.ok || !response.data || !response.data.activeAlert) {
+    stopAlertTimer();
     return null;
   }
 
@@ -2082,29 +2087,26 @@ async function doLogin() {
     selectedRole = user.role || selectedRole;
     document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
     applyRoleAccessControls();
-    showPage(selectedRole === 'staff' ? 'staff' : 'sos');
+    showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
     await refreshCurrentAlert();
-    if (!currentAlertId) {
-      startAlertTimer();
-    }
     return;
   }
 
   document.getElementById('display-name').textContent = name.split(' ')[0];
   applyRoleAccessControls();
-  showPage(selectedRole === 'staff' ? 'staff' : 'sos');
-  startAlertTimer();
+  showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
+  stopAlertTimer();
   showToast('Running in local mode');
 }
 
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
-  if (selectedRole === 'staff' && id !== 'staff') {
+  if (isStaffDashboardOnlyRole(selectedRole) && id !== 'staff') {
     showToast('Staff access is limited to the Staff dashboard');
     id = 'staff';
   }
 
-  if (selectedRole !== 'staff' && id === 'staff') {
+  if (!isStaffDashboardOnlyRole(selectedRole) && id === 'staff') {
     showToast('Only staff can access the Staff dashboard');
     id = 'sos';
   }
@@ -2206,8 +2208,9 @@ async function resolveAlert() {
 
   currentAlertId = null;
   sosAlreadySentLocations.clear();
+  stopAlertTimer();
   showToast('✓ Incident marked as resolved');
-  setTimeout(() => showPage(selectedRole === 'staff' ? 'staff' : 'sos'), 1500);
+  setTimeout(() => showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos'), 1500);
 }
 
 // ─── LOCATION PICKER ───
@@ -2235,6 +2238,15 @@ function startAlertTimer(startIso) {
   if (alertTimerInterval) clearInterval(alertTimerInterval);
   updateAlertClock();
   alertTimerInterval = setInterval(updateAlertClock, 1000);
+}
+
+function stopAlertTimer() {
+  if (alertTimerInterval) {
+    clearInterval(alertTimerInterval);
+    alertTimerInterval = null;
+  }
+  const el = document.getElementById('alert-clock');
+  if (el) el.textContent = '00:00';
 }
 
 // ─── GUIDES FILTER ───
