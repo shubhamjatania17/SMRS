@@ -113,7 +113,7 @@ const demoGuides = [
   { title: 'Heat Exhaustion', category: 'stable', severity: 'STABLE' }
 ];
 
-const STAFF_SCOPED_ROLES = new Set(['staff', 'faculty', 'teacher', 'admin']);
+const STAFF_SCOPED_ROLES = new Set(['staff', 'admin']);
 
 function createDefaultState() {
   return {

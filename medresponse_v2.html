@@ -1955,7 +1955,7 @@ function initDomCache() {
 initDomCache();
 
 function isStaffDashboardOnlyRole(role) {
-  return ['staff', 'faculty', 'teacher', 'admin'].includes(String(role || '').toLowerCase());
+  return ['staff', 'admin'].includes(String(role || '').toLowerCase());
 }
 
 function normalizeCollege(value) {
@@ -2165,12 +2165,12 @@ async function doLogin() {
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
   if (isStaffDashboardOnlyRole(selectedRole) && id !== 'staff') {
-    showToast('Staff access is limited to the Staff dashboard');
+    showToast('Admin and medical staff access is limited to the Staff dashboard');
     id = 'staff';
   }
 
   if (!isStaffDashboardOnlyRole(selectedRole) && id === 'staff') {
-    showToast('Only staff can access the Staff dashboard');
+    showToast('Only admin and medical staff can access the Staff dashboard');
     id = 'sos';
   }
 
