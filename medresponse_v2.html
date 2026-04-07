@@ -1953,6 +1953,23 @@ function initDomCache() {
 
 initDomCache();
 
+function applyRoleAccessControls() {
+  const isStaffOnly = selectedRole === 'staff';
+  const navIds = ['sos', 'alert', 'guides', 'map', 'staff'];
+
+  navIds.forEach(id => {
+    const nav = document.getElementById('nav-' + id);
+    if (!nav) return;
+
+    if (isStaffOnly) {
+      nav.style.display = id === 'staff' ? '' : 'none';
+      return;
+    }
+
+    nav.style.display = id === 'staff' ? 'none' : '';
+  });
+}
+
 async function apiRequest(path, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 4500);
@@ -2062,7 +2079,10 @@ async function doLogin() {
   if (response.ok && response.data && response.data.user) {
     const user = response.data.user;
     userName = user.name || name;
+    selectedRole = user.role || selectedRole;
     document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
+    applyRoleAccessControls();
+    showPage(selectedRole === 'staff' ? 'staff' : 'sos');
     await refreshCurrentAlert();
     if (!currentAlertId) {
       startAlertTimer();
@@ -2071,12 +2091,24 @@ async function doLogin() {
   }
 
   document.getElementById('display-name').textContent = name.split(' ')[0];
+  applyRoleAccessControls();
+  showPage(selectedRole === 'staff' ? 'staff' : 'sos');
   startAlertTimer();
   showToast('Running in local mode');
 }
 
 // ─── PAGE NAVIGATION ───
 function showPage(id) {
+  if (selectedRole === 'staff' && id !== 'staff') {
+    showToast('Staff access is limited to the Staff dashboard');
+    id = 'staff';
+  }
+
+  if (selectedRole !== 'staff' && id === 'staff') {
+    showToast('Only staff can access the Staff dashboard');
+    id = 'sos';
+  }
+
   dom.pages.forEach(p => p.classList.remove('active'));
   dom.navItems.forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -2115,6 +2147,13 @@ async function triggerSOS() {
     sosAlreadySentLocations.add(loc);
     setAlertDetails(alert);
     startAlertTimer(alert.createdAt);
+
+    if (selectedRole === 'student') {
+      showPage('alert');
+      showToast('Alert sent. Redirected to alert status');
+      return;
+    }
+
     document.getElementById('sos-overlay').classList.add('visible');
     return;
   }
@@ -2123,11 +2162,23 @@ async function triggerSOS() {
     setAlertDetails(response.data.activeAlert);
     startAlertTimer(response.data.activeAlert.createdAt);
     sosAlreadySentLocations.add(response.data.activeAlert.location);
+
+    if (selectedRole === 'student') {
+      showPage('alert');
+    }
+
     showToast(response.data.message || '⚠️ Alert already active');
     return;
   }
 
   sosAlreadySentLocations.add(loc);
+
+  if (selectedRole === 'student') {
+    showPage('alert');
+    showToast('Alert sent. Redirected to alert status');
+    return;
+  }
+
   document.getElementById('sent-loc-text').textContent = loc;
   document.getElementById('sos-overlay').classList.add('visible');
 }
@@ -2156,7 +2207,7 @@ async function resolveAlert() {
   currentAlertId = null;
   sosAlreadySentLocations.clear();
   showToast('✓ Incident marked as resolved');
-  setTimeout(() => showPage('sos'), 1500);
+  setTimeout(() => showPage(selectedRole === 'staff' ? 'staff' : 'sos'), 1500);
 }
 
 // ─── LOCATION PICKER ───
