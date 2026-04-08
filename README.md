@@ -25,14 +25,11 @@ The system currently uses file-based persistence (`data/state.json`) and support
 
 ## Key Features
 
-- Role-based login payload (`student` by default).
+- Role-based login payload.
 - One-click SOS alert creation with location.
 - Active alert deduplication and conflict handling.
 - Alert resolution flow with resolver identity.
-- Alert history (capped server-side to prevent unbounded growth).
-- Health and bootstrap endpoints for app initialization.
-- Fast static HTML serving from a cached backend response with ETag support.
-- CORS enabled for demo/testing integrations.
+- Alert history.
 
 ## MVP Link
 
