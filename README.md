@@ -16,7 +16,6 @@ SMRS helps simulate the core workflow of a medical incident response system:
 2. [Key Features](#key-features)
 3. [MVP link](#mvp-link)
 4. [Roadmap Ideas](#roadmap-ideas)
-5. [Contributing](#contributing)
 
 ## Overview
 
@@ -48,18 +47,3 @@ The system currently uses file-based persistence (`data/state.json`) and support
 - GIS map integration with floor plans.
 - SLA dashboards for response-time tracking.
 - Incident export and compliance reporting.
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Make focused commits.
-4. Open a pull request with:
-
-- Problem statement
-- Change summary
-- Test steps
-
-## License
-
-No license file is currently present in this repository. Add a `LICENSE` file if you want explicit open-source usage terms.
