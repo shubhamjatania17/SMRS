@@ -1373,7 +1373,7 @@ body::before {
         <div class="quick-card" onclick="showPage('map')">
           <div class="quick-card-icon">❤️</div>
           <div class="quick-card-title">Nearest AED</div>
-          <div class="quick-card-desc">Block A Lobby · 80m away</div>
+          <div class="quick-card-desc" id="quick-nearest-aed">Loading from live map data...</div>
         </div>
         <div class="quick-card" onclick="showPage('alert')">
           <div class="quick-card-icon">👁️</div>
@@ -1385,114 +1385,25 @@ body::before {
       <!-- Emergency contacts -->
       <div class="contacts-strip">
         <div class="contacts-label">Emergency Contacts</div>
-        <div class="contact-row">
-          <div class="contact-left">
-            <div class="contact-av">🏥</div>
-            <div>
-              <div class="contact-name">Campus Medical Room</div>
-              <div class="contact-role">Block C · Room 001 · 24/7</div>
-            </div>
-          </div>
-          <div class="contact-call">CALL</div>
-        </div>
-        <div class="contact-row">
-          <div class="contact-left">
-            <div class="contact-av">👩‍⚕️</div>
-            <div>
-              <div class="contact-name">Dr. Sharma (On Duty)</div>
-              <div class="contact-role">Campus Medical Officer</div>
-            </div>
-          </div>
-          <div class="contact-call">CALL</div>
-        </div>
-        <div class="contact-row">
-          <div class="contact-left">
-            <div class="contact-av">🚨</div>
-            <div>
-              <div class="contact-name">College Security</div>
-              <div class="contact-role">Gate · Ext. 100</div>
-            </div>
-          </div>
-          <div class="contact-call">CALL</div>
-        </div>
+        <div id="contacts-list"></div>
       </div>
 
     </div>
   </div><!-- /page-sos -->
-
-  <!-- ─── PAGE: ALERT ACTIVE ─── -->
+      <div class="page-heading" id="map-page-title">Campus Map</div>
+      <p class="page-sub" id="map-page-subtitle">Medical resources and key campus areas for emergency navigation.</p>
   <div class="page" id="page-alert">
     <div class="alert-page">
 
-      <div class="alert-banner">
-        <div class="alert-pulse"></div>
-        <div class="alert-banner-text">
-          <div class="alert-level-tag">⚡ Active Emergency · Medical Response Sent</div>
-          <div class="alert-title-main">Student Unresponsive</div>
-          <div class="alert-loc">📍 Block B · Room 203 · 2nd Floor</div>
-        </div>
-      </div>
-
-      <div class="alert-timer-block">
-        <div class="alert-timer" id="alert-clock">00:00</div>
-        <div class="alert-timer-label">Time Since Alert</div>
-      </div>
-
-      <div class="dispatch-row">
-        <div class="dispatch-card">
-          <div class="d-icon">🏥</div>
-          <div class="d-name">Medical</div>
-          <div class="d-status ds-route">EN ROUTE</div>
-        </div>
-        <div class="dispatch-card">
-          <div class="d-icon">🔒</div>
-          <div class="d-name">Security</div>
-          <div class="d-status ds-ok">ALERTED</div>
+        <div id="map-buildings-layer"></div>
+        <div id="map-you-layer"></div>
+        <div id="map-incident-pin-layer"></div>
+        <div id="map-resource-markers-layer"></div>
+        <div class="map-incident-label" id="map-incident-label">No active incident</div>
         </div>
         <div class="dispatch-card">
           <div class="d-icon">📞</div>
-          <div class="d-name">Principal</div>
-          <div class="d-status ds-sent">NOTIFIED</div>
-        </div>
-      </div>
-
-      <div class="instructions-card">
-        <div class="instructions-head">⚠️ While you wait — do this NOW</div>
-        <div class="instructions-body">
-          <div class="i-step">
-            <div class="i-num">1</div>
-            <div class="i-text"><strong>Clear the area.</strong> Ask everyone except 1–2 helpers to step outside. Less chaos = better help.</div>
-          </div>
-          <div class="i-step">
-            <div class="i-num">2</div>
-            <div class="i-text"><strong>Do NOT move the student</strong> unless they are in immediate danger (fire, fall risk).</div>
-          </div>
-          <div class="i-step">
-            <div class="i-num">3</div>
-            <div class="i-text"><strong>Recovery position:</strong> Gently roll them onto their side. This keeps the airway open.</div>
-          </div>
-          <div class="i-step">
-            <div class="i-num">4</div>
-            <div class="i-text"><strong>No water on the face.</strong> No slapping. Just keep them comfortable and watch breathing.</div>
-          </div>
-          <div class="i-step">
-            <div class="i-num">5</div>
-            <div class="i-text">Send someone to the <strong>building entrance</strong> to guide medical staff directly to the room.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="alert-actions">
-        <button class="btn-resolve" onclick="resolveAlert()">✓ Mark Resolved</button>
-        <button class="btn-escalate" onclick="showToast('Escalating to 108...')">🚑 Call Ambulance</button>
-      </div>
-    </div>
-  </div><!-- /page-alert -->
-
-  <!-- ─── PAGE: GUIDES ─── -->
-  <div class="page" id="page-guides">
-    <div class="guides-page">
-      <div class="page-heading">First Aid Guides</div>
+      <div class="resource-list" id="medical-resource-list"></div>
       <p class="page-sub">Tap any emergency to see exactly what to do. Written for people with zero medical training.</p>
 
       <div class="guide-search">
@@ -1866,6 +1777,8 @@ let toastTimerId = null;
 
 const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
 const CLIENT_STORAGE_KEY = 'smrs_client_id';
+let clientConfig = null;
+let locationIndex = 0;
 
 const dom = {
   pages: [],
@@ -1962,6 +1875,139 @@ function formatClockTime(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '--';
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function applyClientConfig(config) {
+  if (!config || typeof config !== 'object') {
+    return;
+  }
+
+  clientConfig = config;
+  renderContacts(config.contacts || []);
+  renderMap(config.map || {});
+
+  const mapTitleEl = document.getElementById('map-page-title');
+  const mapSubTitleEl = document.getElementById('map-page-subtitle');
+  if (mapTitleEl) {
+    mapTitleEl.textContent = (config.ui && config.ui.mapTitle) || 'Campus Map';
+  }
+  if (mapSubTitleEl) {
+    mapSubTitleEl.textContent = (config.ui && config.ui.mapSubtitle) || 'Medical resources and key campus areas for emergency navigation.';
+  }
+
+  const nearestAedEl = document.getElementById('quick-nearest-aed');
+  if (nearestAedEl) {
+    const firstResource = (config.map && Array.isArray(config.map.resources) && config.map.resources[0]) || null;
+    nearestAedEl.textContent = firstResource ? `${firstResource.name} · ${firstResource.distance || ''}`.trim() : 'No resource configured';
+  }
+
+  const locations = Array.isArray(config.locations) ? config.locations.filter(Boolean) : [];
+  if (locations.length > 0) {
+    const currentLocationEl = document.getElementById('location-text');
+    if (currentLocationEl && (currentLocationEl.textContent || '').toLowerCase().includes('set your current location')) {
+      locationIndex = 0;
+      currentLocationEl.textContent = locations[0];
+    }
+  }
+}
+
+function renderContacts(contacts) {
+  const listEl = document.getElementById('contacts-list');
+  if (!listEl) {
+    return;
+  }
+
+  listEl.innerHTML = '';
+  if (!Array.isArray(contacts) || contacts.length === 0) {
+    return;
+  }
+
+  contacts.forEach(contact => {
+    const row = document.createElement('div');
+    row.className = 'contact-row';
+    row.innerHTML =
+      '<div class="contact-left">' +
+      '<div class="contact-av"></div>' +
+      '<div>' +
+      '<div class="contact-name"></div>' +
+      '<div class="contact-role"></div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="contact-call"></div>';
+
+    row.querySelector('.contact-av').textContent = contact.icon || '📞';
+    row.querySelector('.contact-name').textContent = contact.name || 'Emergency Contact';
+    row.querySelector('.contact-role').textContent = contact.role || '';
+    row.querySelector('.contact-call').textContent = contact.callLabel || 'CALL';
+    listEl.appendChild(row);
+  });
+}
+
+function renderMap(mapConfig) {
+  const buildingsLayerEl = document.getElementById('map-buildings-layer');
+  const youLayerEl = document.getElementById('map-you-layer');
+  const markerLayerEl = document.getElementById('map-resource-markers-layer');
+  const resourceListEl = document.getElementById('medical-resource-list');
+
+  if (!buildingsLayerEl || !youLayerEl || !markerLayerEl || !resourceListEl) {
+    return;
+  }
+
+  buildingsLayerEl.innerHTML = '';
+  youLayerEl.innerHTML = '';
+  markerLayerEl.innerHTML = '';
+  resourceListEl.innerHTML = '';
+
+  const buildings = Array.isArray(mapConfig.buildings) ? mapConfig.buildings : [];
+  const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
+
+  buildings.forEach(building => {
+    const block = document.createElement('div');
+    block.className = 'm-building';
+    block.style.left = building.left || '0%';
+    block.style.top = building.top || '0%';
+    block.style.width = building.width || '20%';
+    block.style.height = building.height || '20%';
+    block.innerHTML = (building.label || '').toUpperCase() + (building.subLabel ? '<br>' + building.subLabel : '');
+    buildingsLayerEl.appendChild(block);
+  });
+
+  if (mapConfig.youMarker) {
+    const you = document.createElement('div');
+    you.className = 'map-you';
+    you.style.left = mapConfig.youMarker.left || '41%';
+    you.style.top = mapConfig.youMarker.top || '26%';
+    you.textContent = mapConfig.youMarker.label || '📍 YOU';
+    youLayerEl.appendChild(you);
+  }
+
+  resources.forEach(resource => {
+    const marker = document.createElement('div');
+    marker.className = 'm-aed';
+    marker.style.left = resource.left || '50%';
+    marker.style.top = resource.top || '50%';
+    marker.title = resource.markerTitle || resource.name || 'Resource';
+    marker.textContent = resource.icon || '📍';
+    markerLayerEl.appendChild(marker);
+
+    const row = document.createElement('div');
+    row.className = 'resource-row';
+    row.innerHTML =
+      '<div class="resource-left">' +
+      '<div class="resource-icon"></div>' +
+      '<div>' +
+      '<div class="resource-name"></div>' +
+      '<div class="resource-dist"></div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="resource-status"></div>';
+
+    row.querySelector('.resource-icon').textContent = resource.icon || '📍';
+    row.querySelector('.resource-name').textContent = resource.name || 'Medical Resource';
+    row.querySelector('.resource-dist').textContent = resource.distance || '';
+    row.querySelector('.resource-status').textContent = resource.status || 'AVAILABLE';
+    resourceListEl.appendChild(row);
+  });
 }
 
 function renderIncidentLog(history) {
@@ -2146,6 +2192,9 @@ function applyRealtimeState(payload) {
   }
 
   currentClientId = payload.clientId || currentClientId;
+  if (payload.config) {
+    applyClientConfig(payload.config);
+  }
   latestHistory = Array.isArray(payload.alertHistory) ? payload.alertHistory : [];
   currentActiveAlert = payload.activeAlert || null;
 
@@ -2155,6 +2204,29 @@ function applyRealtimeState(payload) {
   } else {
     currentAlertId = null;
     stopAlertTimer();
+  }
+
+  const incidentLabelEl = document.getElementById('map-incident-label');
+  const incidentPinLayerEl = document.getElementById('map-incident-pin-layer');
+  if (incidentPinLayerEl) {
+    incidentPinLayerEl.innerHTML = '';
+  }
+
+  if (incidentLabelEl) {
+    if (currentActiveAlert) {
+      incidentLabelEl.textContent = 'Active Incident · ' + (currentActiveAlert.location || 'Unknown location');
+    } else {
+      incidentLabelEl.textContent = 'No active incident';
+    }
+  }
+
+  if (currentActiveAlert && incidentPinLayerEl) {
+    const pin = document.createElement('div');
+    pin.className = 'm-pin';
+    pin.style.left = '43%';
+    pin.style.top = '22%';
+    pin.innerHTML = '<div class="m-pin-dot"></div>';
+    incidentPinLayerEl.appendChild(pin);
   }
 
   updateStaffDashboard(currentActiveAlert, latestHistory, payload.lastUpdatedAt);
@@ -2332,20 +2404,17 @@ async function resolveAlert() {
 
 // ─── LOCATION PICKER ───
 function changeLocation() {
-  const current = document.getElementById('location-text').textContent.trim();
-  const typed = window.prompt('Enter your current location', current.includes('Set your current location') ? '' : current);
+  const configuredLocations = clientConfig && Array.isArray(clientConfig.locations)
+    ? clientConfig.locations.filter(Boolean)
+    : [];
 
-  if (typed === null) {
+  if (configuredLocations.length === 0) {
+    showToast('No locations configured for this client');
     return;
   }
 
-  const next = String(typed).trim();
-  if (!next) {
-    showToast('Location cannot be empty');
-    return;
-  }
-
-  document.getElementById('location-text').textContent = next;
+  locationIndex = (locationIndex + 1) % configuredLocations.length;
+  document.getElementById('location-text').textContent = configuredLocations[locationIndex];
   showToast('Location updated');
 }
 

@@ -26,11 +26,103 @@ const htmlCache = {
 
 const streamClients = new Map();
 
+const DEFAULT_CLIENT_CONFIG = {
+  ui: {
+    mapTitle: 'Campus Map',
+    mapSubtitle: 'Medical resources and key campus areas for emergency navigation.'
+  },
+  locations: [
+    'Block A · Room 101 · 1st Floor',
+    'Block B · Room 203 · 2nd Floor',
+    'Library · Reading Hall',
+    'Canteen · Main Hall',
+    'Sports Complex · Ground'
+  ],
+  contacts: [
+    {
+      icon: '🏥',
+      name: 'Medical Room',
+      role: 'Block C · Room 001',
+      callLabel: 'CALL'
+    },
+    {
+      icon: '👩‍⚕️',
+      name: 'On-Duty Doctor',
+      role: 'Campus Emergency Response',
+      callLabel: 'CALL'
+    },
+    {
+      icon: '🚨',
+      name: 'Security Control',
+      role: 'Main Gate Desk',
+      callLabel: 'CALL'
+    }
+  ],
+  map: {
+    buildings: [
+      { label: 'BLOCK A', subLabel: 'CSE/IT', left: '8%', top: '10%', width: '20%', height: '24%' },
+      { label: 'BLOCK B', subLabel: 'ECE/ME', left: '34%', top: '10%', width: '20%', height: '24%' },
+      { label: 'LIBRARY', subLabel: '', left: '60%', top: '10%', width: '24%', height: '24%' },
+      { label: 'CANTEEN', subLabel: '', left: '8%', top: '55%', width: '25%', height: '22%' },
+      { label: 'BLOCK C', subLabel: 'MECH', left: '40%', top: '55%', width: '20%', height: '22%' },
+      { label: 'SPORTS COMPLEX', subLabel: '', left: '67%', top: '55%', width: '22%', height: '22%' }
+    ],
+    youMarker: { label: '📍 YOU', left: '41%', top: '26%' },
+    resources: [
+      {
+        icon: '❤️',
+        name: 'AED Unit — Block A Lobby',
+        distance: '~80m · Ground Floor · Near entrance',
+        status: 'AVAILABLE',
+        left: '17%',
+        top: '40%',
+        markerTitle: 'AED · Block A Lobby'
+      },
+      {
+        icon: '❤️',
+        name: 'AED Unit — Library Floor 1',
+        distance: '~140m · Near circulation desk',
+        status: 'AVAILABLE',
+        left: '62%',
+        top: '40%',
+        markerTitle: 'AED · Library Floor 1'
+      },
+      {
+        icon: '🏥',
+        name: 'Medical Room — Block C',
+        distance: '~200m · Ground Floor · Room 001',
+        status: 'AVAILABLE',
+        left: '47%',
+        top: '72%',
+        markerTitle: 'Medical Room'
+      },
+      {
+        icon: '🩹',
+        name: 'First Aid Kit — Canteen',
+        distance: '~110m · Behind serving counter',
+        status: 'AVAILABLE',
+        left: '20%',
+        top: '72%',
+        markerTitle: 'First Aid Kit · Canteen'
+      }
+    ]
+  }
+};
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function getDefaultClientConfig() {
+  return deepClone(DEFAULT_CLIENT_CONFIG);
+}
+
 function createTenantState() {
   return {
     activeAlert: null,
     alertHistory: [],
-    lastUpdatedAt: null
+    lastUpdatedAt: null,
+    config: getDefaultClientConfig()
   };
 }
 
@@ -61,10 +153,15 @@ function sanitizeClientId(value) {
 
 function normalizeTenant(rawTenant) {
   const source = rawTenant || {};
+  const normalizedConfig = source.config && typeof source.config === 'object'
+    ? source.config
+    : getDefaultClientConfig();
+
   return {
     ...createTenantState(),
     ...source,
-    alertHistory: Array.isArray(source.alertHistory) ? source.alertHistory : []
+    alertHistory: Array.isArray(source.alertHistory) ? source.alertHistory : [],
+    config: normalizedConfig
   };
 }
 
@@ -219,6 +316,7 @@ function getSnapshot(clientId) {
   const tenant = getTenantState(clientId);
   return {
     clientId: sanitizeClientId(clientId),
+    config: tenant.config || getDefaultClientConfig(),
     activeAlert: tenant.activeAlert,
     alertHistory: tenant.alertHistory,
     lastUpdatedAt: tenant.lastUpdatedAt
