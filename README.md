@@ -35,6 +35,8 @@ The system currently uses file-based persistence (`data/state.json`) and support
 
 <https://medresponse.onrender.com>
 
+(GITHUB PAGE: <https://shubhamjatania17.github.io/SMRS/>)
+
 ## Roadmap Ideas
 
 - Multi-campus and multi-building tenancy.
