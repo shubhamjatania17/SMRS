@@ -4,7 +4,9 @@ const path = require('path');
 const { URL } = require('url');
 
 const ROOT_DIR = __dirname;
-const HTML_FILE = path.join(ROOT_DIR, 'medresponse_v2.html');
+const PRIMARY_HTML_FILE = path.join(ROOT_DIR, 'index.html');
+const LEGACY_HTML_FILE = path.join(ROOT_DIR, 'medresponse_v2.html');
+const HTML_FILE = fs.existsSync(PRIMARY_HTML_FILE) ? PRIMARY_HTML_FILE : LEGACY_HTML_FILE;
 const STATE_FILE = path.join(ROOT_DIR, 'data', 'state.json');
 const PORT = Number(process.env.PORT || 3000);
 const MAX_HISTORY_ITEMS = 100;
@@ -390,7 +392,7 @@ async function routeRequest(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const { pathname } = requestUrl;
 
-  if (req.method === 'GET' && (pathname === '/' || pathname === '/medresponse_v2.html')) {
+  if (req.method === 'GET' && (pathname === '/' || pathname === '/index.html' || pathname === '/medresponse_v2.html')) {
     const html = getHtmlPayload();
     if (req.headers['if-none-match'] === html.etag) {
       res.writeHead(304, {
