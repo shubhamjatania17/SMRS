@@ -2,7 +2,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const axios = require('axios');
 
+const app = express();
 const ROOT_DIR = __dirname;
 const HTML_FILE = path.join(ROOT_DIR, 'medresponse_v2.html');
 const STATE_FILE = path.join(ROOT_DIR, 'data', 'state.json');
