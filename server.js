@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
-const axios = require('axios');
 
 const app = express();
 const ROOT_DIR = __dirname;
@@ -17,10 +16,13 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
 };
 
-const url = `https://medresponse.onrender.com/`; // Replace with your Render URL
-const interval = 30000; // Interval in milliseconds (30 seconds)
+const express =require('express');
+const axios = require('axios');
 
-//Reloader Function
+const url = `https://medresponse.onrender.com/`;
+
+const interval = 30000;
+
 function reloadWebsite() {
   axios.get(url)
     .then(response => {
@@ -32,6 +34,8 @@ function reloadWebsite() {
 }
 
 setInterval(reloadWebsite, interval);
+
+//
 
 const htmlCache = {
   content: '',
