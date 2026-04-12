@@ -1926,7 +1926,7 @@ let alertTimerInterval = null;
 let alertSeconds = 0;
 let alertBaseTime = Date.now();
 let currentAlertId = null;
-const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
 const ALERT_FETCH_TTL_MS = 2500;
 let alertFetchInFlight = null;
 let lastAlertFetchAt = 0;
