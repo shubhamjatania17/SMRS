@@ -1276,11 +1276,6 @@ body::before {
     <p class="login-sub">Campus emergency system. Press SOS → medical staff are notified instantly with your exact location.</p>
 
     <div class="form-group">
-      <label class="form-label">College / Institution</label>
-      <input class="form-input" type="text" placeholder="e.g. MIT College of Engineering" id="college-input" value="MIT College of Engineering"/>
-    </div>
-
-    <div class="form-group">
       <label class="form-label">Your Name</label>
       <input class="form-input" type="text" placeholder="Full name" id="name-input"/>
     </div>
@@ -1346,7 +1341,7 @@ body::before {
 
       <div class="location-pill">
         <div class="location-dot"></div>
-        <span class="location-text" id="location-text">Block B · Room 203 · 2nd Floor</span>
+        <span class="location-text" id="location-text">Set your current location</span>
         <span class="location-change" onclick="changeLocation()">Change</span>
       </div>
 
@@ -1746,107 +1741,46 @@ body::before {
         <div class="stat-card">
           <div class="stat-label">Active Alerts</div>
           <div class="stat-val sv-red" id="staff-active-alert-count">0</div>
-          <div class="stat-note" id="staff-active-alert-note">No active alerts for your college</div>
+          <div class="stat-note" id="staff-active-alert-note">No active alerts</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Resolved Today</div>
-          <div class="stat-val sv-green">3</div>
-          <div class="stat-note">All within 8 min avg</div>
+          <div class="stat-label">Resolved Incidents</div>
+          <div class="stat-val sv-green" id="staff-resolved-count">0</div>
+          <div class="stat-note">From this client workspace</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Response Time</div>
-          <div class="stat-val sv-amber">3m</div>
-          <div class="stat-note">Avg this month</div>
+          <div class="stat-label">Total Incidents</div>
+          <div class="stat-val sv-amber" id="staff-total-incidents">0</div>
+          <div class="stat-note">Active + resolved</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Staff On Duty</div>
-          <div class="stat-val">4</div>
-          <div class="stat-note">2 available now</div>
+          <div class="stat-label">Last Updated</div>
+          <div class="stat-val" id="staff-last-updated">--</div>
+          <div class="stat-note">Live stream status</div>
         </div>
       </div>
 
       <div class="incidents-card">
         <div class="card-head">
           <div class="card-head-title">Incident Log</div>
-          <div class="card-head-action">Export</div>
+          <div class="card-head-action" id="client-id-badge">Client: --</div>
         </div>
-        <div class="incident-item">
-          <div class="inc-sev inc-sev-high"></div>
-          <div class="inc-info">
-            <div class="inc-type">Student Unresponsive — Fainting</div>
-            <div class="inc-meta">Block B · Rm 203 · 2 min ago</div>
-          </div>
-          <div class="inc-badge ib-active">ACTIVE</div>
-        </div>
-        <div class="incident-item">
-          <div class="inc-sev inc-sev-med"></div>
-          <div class="inc-info">
-            <div class="inc-type">Allergic Reaction</div>
-            <div class="inc-meta">Canteen · 09:14 AM</div>
-          </div>
-          <div class="inc-badge ib-resolved">RESOLVED</div>
-        </div>
-        <div class="incident-item">
-          <div class="inc-sev inc-sev-high"></div>
-          <div class="inc-info">
-            <div class="inc-type">Seizure</div>
-            <div class="inc-meta">Block A · Lab 3 · Yesterday</div>
-          </div>
-          <div class="inc-badge ib-resolved">RESOLVED</div>
-        </div>
-        <div class="incident-item">
-          <div class="inc-sev inc-sev-low"></div>
-          <div class="inc-info">
-            <div class="inc-type">Fracture — Sports Complex</div>
-            <div class="inc-meta">Sports Ground · Yesterday</div>
-          </div>
-          <div class="inc-badge ib-resolved">RESOLVED</div>
-        </div>
+        <div id="incident-log-list"></div>
       </div>
 
       <div class="personnel-card">
         <div class="card-head">
-          <div class="card-head-title">Medical Personnel</div>
+          <div class="card-head-title">Realtime Status</div>
         </div>
         <div class="p-item">
           <div class="p-left">
-            <div class="p-av">👩‍⚕️</div>
+            <div class="p-av">📡</div>
             <div>
-              <div class="p-name">Dr. Priya Sharma</div>
-              <div class="p-role">Campus Medical Officer</div>
+              <div class="p-name" id="realtime-status-title">Realtime channel disconnected</div>
+              <div class="p-role" id="realtime-status-note">Waiting for stream connection...</div>
             </div>
           </div>
-          <div class="avail-pill ap-route" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)">EN ROUTE</div>
-        </div>
-        <div class="p-item">
-          <div class="p-left">
-            <div class="p-av">🧑‍⚕️</div>
-            <div>
-              <div class="p-name">Nurse Rajan</div>
-              <div class="p-role">First Aid Coordinator</div>
-            </div>
-          </div>
-          <div class="avail-pill ap-on">AVAILABLE</div>
-        </div>
-        <div class="p-item">
-          <div class="p-left">
-            <div class="p-av">👨‍⚕️</div>
-            <div>
-              <div class="p-name">Dr. Anil Mehta</div>
-              <div class="p-role">Visiting Physician</div>
-            </div>
-          </div>
-          <div class="avail-pill ap-busy">BUSY</div>
-        </div>
-        <div class="p-item">
-          <div class="p-left">
-            <div class="p-av">👩‍⚕️</div>
-            <div>
-              <div class="p-name">Nurse Kavya</div>
-              <div class="p-role">Triage Nurse</div>
-            </div>
-          </div>
-          <div class="avail-pill ap-on">AVAILABLE</div>
+          <div class="avail-pill ap-busy" id="realtime-status-pill">OFFLINE</div>
         </div>
       </div>
 
@@ -1920,17 +1854,18 @@ body::before {
 // ─── STATE ───
 let selectedRole = 'student';
 let userName = '';
-let userCollege = '';
-let sosAlreadySentLocations = new Set();
+let currentClientId = '';
+let latestHistory = [];
+let currentActiveAlert = null;
+let streamConnection = null;
 let alertTimerInterval = null;
 let alertSeconds = 0;
 let alertBaseTime = Date.now();
 let currentAlertId = null;
-const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
-const ALERT_FETCH_TTL_MS = 2500;
-let alertFetchInFlight = null;
-let lastAlertFetchAt = 0;
 let toastTimerId = null;
+
+const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
+const CLIENT_STORAGE_KEY = 'smrs_client_id';
 
 const dom = {
   pages: [],
@@ -1954,29 +1889,121 @@ function isStaffDashboardOnlyRole(role) {
   return ['staff', 'admin'].includes(String(role || '').toLowerCase());
 }
 
-function normalizeCollege(value) {
-  return String(value || '').trim().toLowerCase();
+function buildClientId() {
+  return 'client-' + Math.random().toString(36).slice(2, 10);
 }
 
-function isSameCollege(alertCollege, currentUserCollege) {
-  const left = normalizeCollege(alertCollege);
-  const right = normalizeCollege(currentUserCollege);
-  return Boolean(left) && Boolean(right) && left === right;
+function resolveClientId() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = String(params.get('client') || params.get('clientId') || '').trim();
+  if (fromUrl) {
+    localStorage.setItem(CLIENT_STORAGE_KEY, fromUrl);
+    return fromUrl;
+  }
+
+  const fromStorage = String(localStorage.getItem(CLIENT_STORAGE_KEY) || '').trim();
+  if (fromStorage) {
+    return fromStorage;
+  }
+
+  const generated = buildClientId();
+  localStorage.setItem(CLIENT_STORAGE_KEY, generated);
+  return generated;
 }
 
-function getScopeQueryString() {
+function getScopeQueryString(includeRole = true) {
   const params = new URLSearchParams();
-  if (selectedRole) {
+  if (includeRole && selectedRole) {
     params.set('role', selectedRole);
   }
-  if (userCollege) {
-    params.set('college', userCollege);
+  if (currentClientId) {
+    params.set('clientId', currentClientId);
   }
   const query = params.toString();
   return query ? '?' + query : '';
 }
 
-function updateStaffDashboard(activeAlert) {
+function setRealtimeStatus(connected, note) {
+  const titleEl = document.getElementById('realtime-status-title');
+  const noteEl = document.getElementById('realtime-status-note');
+  const pillEl = document.getElementById('realtime-status-pill');
+
+  if (!titleEl || !noteEl || !pillEl) {
+    return;
+  }
+
+  if (connected) {
+    titleEl.textContent = 'Realtime channel connected';
+    noteEl.textContent = note || 'Updates are synced instantly across this client workspace.';
+    pillEl.textContent = 'ONLINE';
+    pillEl.className = 'avail-pill ap-on';
+    return;
+  }
+
+  titleEl.textContent = 'Realtime channel disconnected';
+  noteEl.textContent = note || 'Trying to reconnect...';
+  pillEl.textContent = 'OFFLINE';
+  pillEl.className = 'avail-pill ap-busy';
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return 'just now';
+  const at = new Date(iso).getTime();
+  if (Number.isNaN(at)) return 'just now';
+  const diff = Math.max(0, Math.floor((Date.now() - at) / 1000));
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function formatClockTime(iso) {
+  if (!iso) return '--';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '--';
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderIncidentLog(history) {
+  const listEl = document.getElementById('incident-log-list');
+  if (!listEl) {
+    return;
+  }
+
+  listEl.innerHTML = '';
+  if (!history || history.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'incident-item';
+    empty.innerHTML = '<div class="inc-info"><div class="inc-type">No incidents yet</div><div class="inc-meta">When an alert is raised, it appears here in realtime.</div></div>';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  history.slice(0, 10).forEach(item => {
+    const incident = document.createElement('div');
+    incident.className = 'incident-item';
+
+    const sevClass = item.status === 'active' ? 'inc-sev-high' : 'inc-sev-low';
+    const badgeClass = item.status === 'active' ? 'ib-active' : 'ib-resolved';
+    const badgeText = String(item.status || '').toUpperCase() || 'UNKNOWN';
+    const title = item.title || 'Emergency Alert';
+    const meta = (item.location || 'Unknown location') + ' · ' + formatRelativeTime(item.updatedAt || item.createdAt);
+
+    incident.innerHTML =
+      '<div class="inc-sev ' + sevClass + '"></div>' +
+      '<div class="inc-info">' +
+      '<div class="inc-type"></div>' +
+      '<div class="inc-meta"></div>' +
+      '</div>' +
+      '<div class="inc-badge ' + badgeClass + '">' + badgeText + '</div>';
+
+    incident.querySelector('.inc-type').textContent = title;
+    incident.querySelector('.inc-meta').textContent = meta;
+    listEl.appendChild(incident);
+  });
+}
+
+function updateStaffDashboard(activeAlert, history, lastUpdatedAt) {
   if (!isStaffDashboardOnlyRole(selectedRole)) {
     return;
   }
@@ -1984,21 +2011,43 @@ function updateStaffDashboard(activeAlert) {
   const countEl = document.getElementById('staff-active-alert-count');
   const noteEl = document.getElementById('staff-active-alert-note');
   const scopeEl = document.getElementById('staff-scope-note');
-  const scopeCollege = userCollege || 'your college';
+  const resolvedEl = document.getElementById('staff-resolved-count');
+  const totalEl = document.getElementById('staff-total-incidents');
+  const lastUpdatedEl = document.getElementById('staff-last-updated');
+  const clientBadgeEl = document.getElementById('client-id-badge');
+
+  const incidents = Array.isArray(history) ? history : [];
+  const resolvedCount = incidents.filter(item => item.status === 'resolved').length;
 
   if (scopeEl) {
-    scopeEl.textContent = 'Showing incidents for ' + scopeCollege + '.';
+    scopeEl.textContent = 'Realtime incident overview for client ' + currentClientId + '.';
   }
 
-  const hasVisibleAlert = activeAlert && isSameCollege(activeAlert.college, userCollege);
-  if (hasVisibleAlert) {
-    if (countEl) countEl.textContent = '1';
-    if (noteEl) noteEl.textContent = (activeAlert.location || 'Campus location') + ' · ' + (activeAlert.college || scopeCollege);
-    return;
+  if (clientBadgeEl) {
+    clientBadgeEl.textContent = 'Client: ' + currentClientId;
   }
 
-  if (countEl) countEl.textContent = '0';
-  if (noteEl) noteEl.textContent = 'No active alerts for ' + scopeCollege;
+  if (countEl) {
+    countEl.textContent = activeAlert ? '1' : '0';
+  }
+
+  if (noteEl) {
+    noteEl.textContent = activeAlert ? (activeAlert.location || 'Active alert') : 'No active alerts';
+  }
+
+  if (resolvedEl) {
+    resolvedEl.textContent = String(resolvedCount);
+  }
+
+  if (totalEl) {
+    totalEl.textContent = String(incidents.length);
+  }
+
+  if (lastUpdatedEl) {
+    lastUpdatedEl.textContent = formatClockTime(lastUpdatedAt);
+  }
+
+  renderIncidentLog(incidents);
 }
 
 function applyRoleAccessControls() {
@@ -2020,12 +2069,13 @@ function applyRoleAccessControls() {
 
 async function apiRequest(path, options = {}) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4500);
+  const timeoutId = setTimeout(() => controller.abort(), 7000);
 
   try {
     const response = await fetch(API_BASE + path, {
       headers: {
         'Content-Type': 'application/json',
+        'X-Client-Id': currentClientId,
         ...(options.headers || {})
       },
       signal: controller.signal,
@@ -2060,12 +2110,12 @@ function setAlertDetails(alert) {
   const locEl = document.querySelector('.alert-loc');
   const sentLocEl = document.getElementById('sent-loc-text');
 
-  if (titleEl && alert.title) {
-    titleEl.textContent = alert.title;
+  if (titleEl) {
+    titleEl.textContent = alert.title || 'Emergency Alert';
   }
 
-  if (locEl && alert.location) {
-    locEl.textContent = '📍 ' + alert.location;
+  if (locEl) {
+    locEl.textContent = '📍 ' + (alert.location || 'Unknown location');
   }
 
   if (sentLocEl && alert.location) {
@@ -2073,42 +2123,77 @@ function setAlertDetails(alert) {
   }
 }
 
-async function refreshCurrentAlert() {
-  const now = Date.now();
-  if (alertFetchInFlight) {
-    return alertFetchInFlight;
+function startAlertTimer(startIso) {
+  const startTime = startIso ? new Date(startIso).getTime() : Date.now();
+  alertBaseTime = Number.isNaN(startTime) ? Date.now() : startTime;
+  if (alertTimerInterval) clearInterval(alertTimerInterval);
+  updateAlertClock();
+  alertTimerInterval = setInterval(updateAlertClock, 1000);
+}
+
+function stopAlertTimer() {
+  if (alertTimerInterval) {
+    clearInterval(alertTimerInterval);
+    alertTimerInterval = null;
+  }
+  const el = document.getElementById('alert-clock');
+  if (el) el.textContent = '00:00';
+}
+
+function applyRealtimeState(payload) {
+  if (!payload) {
+    return;
   }
 
-  if (now - lastAlertFetchAt < ALERT_FETCH_TTL_MS && currentAlertId) {
-    return null;
-  }
+  currentClientId = payload.clientId || currentClientId;
+  latestHistory = Array.isArray(payload.alertHistory) ? payload.alertHistory : [];
+  currentActiveAlert = payload.activeAlert || null;
 
-  lastAlertFetchAt = now;
-  alertFetchInFlight = apiRequest('/api/alert/current' + getScopeQueryString());
-  const response = await alertFetchInFlight;
-  alertFetchInFlight = null;
-
-  if (!response.ok || !response.data || !response.data.activeAlert) {
+  if (currentActiveAlert) {
+    setAlertDetails(currentActiveAlert);
+    startAlertTimer(currentActiveAlert.createdAt);
+  } else {
     currentAlertId = null;
     stopAlertTimer();
-    updateStaffDashboard(null);
-    return null;
   }
 
-  const activeAlert = response.data.activeAlert;
+  updateStaffDashboard(currentActiveAlert, latestHistory, payload.lastUpdatedAt);
+}
 
-  if (isStaffDashboardOnlyRole(selectedRole) && !isSameCollege(activeAlert.college, userCollege)) {
-    currentAlertId = null;
-    stopAlertTimer();
-    updateStaffDashboard(null);
-    return null;
+function connectRealtimeStream() {
+  if (streamConnection) {
+    streamConnection.close();
+    streamConnection = null;
   }
 
-  setAlertDetails(activeAlert);
-  startAlertTimer(activeAlert.createdAt);
-  sosAlreadySentLocations.add(activeAlert.location);
-  updateStaffDashboard(activeAlert);
-  return activeAlert;
+  const streamUrl = API_BASE + '/api/stream' + getScopeQueryString(false);
+  streamConnection = new EventSource(streamUrl);
+
+  streamConnection.addEventListener('state:update', event => {
+    try {
+      const payload = JSON.parse(event.data || '{}');
+      applyRealtimeState(payload);
+      setRealtimeStatus(true);
+    } catch {
+      setRealtimeStatus(false, 'Invalid realtime payload received.');
+    }
+  });
+
+  streamConnection.onopen = () => {
+    setRealtimeStatus(true);
+  };
+
+  streamConnection.onerror = () => {
+    setRealtimeStatus(false, 'Connection lost. Auto-reconnecting...');
+  };
+}
+
+async function refreshBootstrap() {
+  const response = await apiRequest('/api/bootstrap' + getScopeQueryString(false));
+  if (!response.ok || !response.data) {
+    return;
+  }
+  applyRealtimeState(response.data);
 }
 
 // ─── LOGIN ───
@@ -2120,42 +2205,39 @@ function setRole(el, role) {
 
 async function doLogin() {
   const name = document.getElementById('name-input').value.trim();
-  const college = document.getElementById('college-input').value.trim();
-  if (!name) { showToast('Please enter your name'); return; }
+  if (!name) {
+    showToast('Please enter your name');
+    return;
+  }
 
+  currentClientId = resolveClientId();
   const response = await apiRequest('/api/login', {
     method: 'POST',
     body: JSON.stringify({
       name,
-      college,
-      role: selectedRole
+      role: selectedRole,
+      clientId: currentClientId
     })
   });
 
-  userName = name;
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-
-  if (response.ok && response.data && response.data.user) {
-    const user = response.data.user;
-    userName = user.name || name;
-    selectedRole = user.role || selectedRole;
-    userCollege = (user.college || college || '').trim();
-    document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
-    applyRoleAccessControls();
-    updateStaffDashboard(null);
-    showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
-    await refreshCurrentAlert();
+  if (!response.ok || !response.data || !response.data.user) {
+    showToast((response.data && response.data.message) || 'Unable to login right now');
     return;
   }
 
-  document.getElementById('display-name').textContent = name.split(' ')[0];
-  userCollege = college || '';
+  const user = response.data.user;
+  userName = user.name || name;
+  selectedRole = user.role || selectedRole;
+  currentClientId = user.clientId || currentClientId;
+
+  document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
   applyRoleAccessControls();
-  updateStaffDashboard(null);
+  applyRealtimeState(response.data);
+  connectRealtimeStream();
   showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
-  stopAlertTimer();
-  showToast('Running in local mode');
 }
 
 // ─── PAGE NAVIGATION ───
@@ -2174,140 +2256,97 @@ function showPage(id) {
   dom.navItems.forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
-  if (id === 'alert') {
-    refreshCurrentAlert();
-  }
   window.scrollTo(0, 0);
 }
 
 // ─── SOS ───
 async function triggerSOS() {
-  const loc = document.getElementById('location-text').textContent;
-
-  // De-duplication check
-  if (sosAlreadySentLocations.has(loc)) {
-    showToast('⚠️ Alert already sent from this location');
+  const loc = document.getElementById('location-text').textContent.trim();
+  if (!loc || loc.toLowerCase().includes('set your current location')) {
+    showToast('Please set your location first');
     return;
   }
 
   const response = await apiRequest('/api/alerts', {
     method: 'POST',
     body: JSON.stringify({
-      title: 'Student Unresponsive',
+      title: 'Emergency Alert',
       location: loc,
       userName,
       role: selectedRole,
-      college: userCollege || document.getElementById('college-input').value.trim(),
+      clientId: currentClientId,
       severity: 'critical'
     })
   });
 
-  if (response.ok && response.data && response.data.alert) {
-    const alert = response.data.alert;
-    currentAlertId = alert.id;
-    sosAlreadySentLocations.add(loc);
-    setAlertDetails(alert);
-    startAlertTimer(alert.createdAt);
-
-    if (selectedRole === 'student') {
+  if (response.ok && response.data) {
+    applyRealtimeState(response.data);
+    if (selectedRole === 'student' || selectedRole === 'teacher') {
       showPage('alert');
-      showToast('Alert sent. Redirected to alert status');
-      return;
+    } else {
+      document.getElementById('sos-overlay').classList.add('visible');
     }
-
-    document.getElementById('sos-overlay').classList.add('visible');
+    showToast('Alert sent successfully');
     return;
   }
 
   if (response.status === 409 && response.data && response.data.activeAlert) {
     setAlertDetails(response.data.activeAlert);
     startAlertTimer(response.data.activeAlert.createdAt);
-    sosAlreadySentLocations.add(response.data.activeAlert.location);
-
-    if (selectedRole === 'student') {
-      showPage('alert');
-    }
-
-    showToast(response.data.message || '⚠️ Alert already active');
+    showToast(response.data.message || 'Alert already active');
     return;
   }
 
-  sosAlreadySentLocations.add(loc);
-
-  if (selectedRole === 'student') {
-    showPage('alert');
-    showToast('Alert sent. Redirected to alert status');
-    return;
-  }
-
-  document.getElementById('sent-loc-text').textContent = loc;
-  document.getElementById('sos-overlay').classList.add('visible');
+  showToast((response.data && response.data.message) || 'Unable to send alert');
 }
 
-async function dismissSOS() {
+function dismissSOS() {
   document.getElementById('sos-overlay').classList.remove('visible');
   showPage('alert');
-  await refreshCurrentAlert();
 }
 
 async function resolveAlert() {
-  if (currentAlertId) {
-    const response = await apiRequest('/api/alerts/' + currentAlertId + '/resolve', {
-      method: 'POST',
-      body: JSON.stringify({
-        resolvedBy: userName || 'Staff',
-        role: selectedRole,
-        college: userCollege
-      })
-    });
-
-    if (!response.ok) {
-      showToast((response.data && response.data.message) || 'Unable to resolve alert');
-      return;
-    }
+  if (!currentAlertId) {
+    showToast('No active alert to resolve');
+    return;
   }
 
-  currentAlertId = null;
-  sosAlreadySentLocations.clear();
-  stopAlertTimer();
-  showToast('✓ Incident marked as resolved');
-  setTimeout(() => showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos'), 1500);
+  const response = await apiRequest('/api/alerts/' + currentAlertId + '/resolve', {
+    method: 'POST',
+    body: JSON.stringify({
+      resolvedBy: userName || 'Staff',
+      role: selectedRole,
+      clientId: currentClientId
+    })
+  });
+
+  if (!response.ok) {
+    showToast((response.data && response.data.message) || 'Unable to resolve alert');
+    return;
+  }
+
+  applyRealtimeState(response.data);
+  showToast('Incident marked as resolved');
+  showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
 }
 
 // ─── LOCATION PICKER ───
-const locations = [
-  'Block A · Room 101 · 1st Floor',
-  'Block A · Lab 3 · Ground Floor',
-  'Block B · Room 203 · 2nd Floor',
-  'Block B · Corridor 2B',
-  'Library · Reading Hall',
-  'Canteen · Main Hall',
-  'Block C · Room 001',
-  'Sports Complex · Ground',
-];
-let locIdx = 2;
 function changeLocation() {
-  locIdx = (locIdx + 1) % locations.length;
-  document.getElementById('location-text').textContent = locations[locIdx];
-  showToast('📍 Location updated');
-}
+  const current = document.getElementById('location-text').textContent.trim();
+  const typed = window.prompt('Enter your current location', current.includes('Set your current location') ? '' : current);
 
-// ─── ALERT TIMER ───
-function startAlertTimer(startIso) {
-  const startTime = startIso ? new Date(startIso).getTime() : Date.now();
-  alertBaseTime = Number.isNaN(startTime) ? Date.now() : startTime;
-  if (alertTimerInterval) clearInterval(alertTimerInterval);
-  updateAlertClock();
-  alertTimerInterval = setInterval(updateAlertClock, 1000);
-}
-
-function stopAlertTimer() {
-  if (alertTimerInterval) {
-    clearInterval(alertTimerInterval);
-    alertTimerInterval = null;
+  if (typed === null) {
+    return;
   }
-  const el = document.getElementById('alert-clock');
-  if (el) el.textContent = '00:00';
+
+  const next = String(typed).trim();
+  if (!next) {
+    showToast('Location cannot be empty');
+    return;
+  }
+
+  document.getElementById('location-text').textContent = next;
+  showToast('Location updated');
 }
 
 // ─── GUIDES FILTER ───
@@ -2339,6 +2378,17 @@ function showToast(msg) {
   if (toastTimerId) clearTimeout(toastTimerId);
   toastTimerId = setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+window.addEventListener('beforeunload', () => {
+  if (streamConnection) {
+    streamConnection.close();
+  }
+});
+
+(async function bootstrapClientState() {
+  currentClientId = resolveClientId();
+  await refreshBootstrap();
+})();
 </script>
 </body>
 </html>
