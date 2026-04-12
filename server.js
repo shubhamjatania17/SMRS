@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 
-const app = express();
 const ROOT_DIR = __dirname;
 const HTML_FILE = path.join(ROOT_DIR, 'medresponse_v2.html');
 const STATE_FILE = path.join(ROOT_DIR, 'data', 'state.json');
@@ -15,27 +14,6 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
 };
-
-const express =require('express');
-const axios = require('axios');
-
-const url = `https://medresponse.onrender.com/`;
-
-const interval = 30000;
-
-function reloadWebsite() {
-  axios.get(url)
-    .then(response => {
-      console.log(`Reloaded at ${new Date().toISOString()}: Status Code ${response.status}`);
-    })
-    .catch(error => {
-      console.error(`Error reloading at ${new Date().toISOString()}:`, error.message);
-    });
-}
-
-setInterval(reloadWebsite, interval);
-
-//
 
 const htmlCache = {
   content: '',
