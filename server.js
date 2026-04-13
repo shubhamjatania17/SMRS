@@ -109,6 +109,7 @@ function buildDefaultMapResources() {
       resources.push({
         icon: pin.icon,
         name: `${pin.type} — ${pin.room}`,
+        locationLabel: `${floorLabel} · ${pin.room}`,
         floorKey,
         distance: `${floorLabel} · ${pin.room}`,
         status: 'AVAILABLE',
@@ -122,17 +123,28 @@ function buildDefaultMapResources() {
   return resources;
 }
 
+function buildDefaultLocationOptions() {
+  const locations = [];
+
+  FLOOR_SEQUENCE.forEach(floorKey => {
+    const floorLabel = FLOOR_LABELS[floorKey] || `Floor ${floorKey}`;
+    const roomPins = FLOOR_RESOURCE_ROOMS[floorKey] || [];
+
+    roomPins.forEach(pin => {
+      locations.push(`${floorLabel} · ${pin.room}`);
+    });
+  });
+
+  return locations;
+}
+
 const DEFAULT_CLIENT_CONFIG = {
   ui: {
     mapTitle: 'Campus Map',
     mapSubtitle: 'Medical resources and key campus areas for emergency navigation.'
   },
   locations: [
-    'Block A · Room 101 · 1st Floor',
-    'Block B · Room 203 · 2nd Floor',
-    'Library · Reading Hall',
-    'Canteen · Main Hall',
-    'Sports Complex · Ground'
+    ...buildDefaultLocationOptions()
   ],
   contacts: [
     {
@@ -164,7 +176,8 @@ const DEFAULT_CLIENT_CONFIG = {
       { label: 'SPORTS COMPLEX', subLabel: '', left: '67%', top: '55%', width: '22%', height: '22%' }
     ],
     youMarker: { label: '📍 YOU', left: '41%', top: '26%' },
-    resources: buildDefaultMapResources()
+    resources: buildDefaultMapResources(),
+    locations: buildDefaultLocationOptions()
   }
 };
 
@@ -230,8 +243,12 @@ function normalizeMapConfig(mapConfig) {
   }
 
   const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
+  const locations = Array.isArray(mapConfig.locations) && mapConfig.locations.length > 0
+    ? mapConfig.locations
+    : resources.map(resource => String(resource.locationLabel || resource.name || resource.distance || '').trim()).filter(Boolean);
   return {
     ...mapConfig,
+    locations,
     resources: resources.map(resource => ({
       ...resource,
       floorKey: inferResourceFloorKey(resource)

@@ -889,6 +889,28 @@ body::before {
   position: absolute;
   inset: 0;
   z-index: 1;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.08), transparent 58%),
+    linear-gradient(135deg, rgba(255, 67, 67, 0.08), rgba(0, 0, 0, 0) 55%);
+}
+
+.map-floor-plan-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 10, 16, 0.08), rgba(8, 10, 16, 0.32));
+}
+
+.map-floor-plan-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 43, 82, 0.12), transparent 62%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 34%, transparent 66%, rgba(255, 255, 255, 0.04));
+  mix-blend-mode: screen;
 }
 
 .map-floor-plan {
@@ -896,6 +918,10 @@ body::before {
   height: 100%;
   object-fit: contain;
   display: block;
+  opacity: 0.24;
+  filter: grayscale(1) brightness(0.72) contrast(1.42) sepia(0.9) hue-rotate(326deg) saturate(1.4);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .map-grid-bg {
@@ -1435,8 +1461,6 @@ body::before {
 
     </div>
   </div><!-- /page-sos -->
-      <div class="page-heading" id="map-page-title">Campus Map</div>
-      <p class="page-sub" id="map-page-subtitle">Medical resources and key campus areas for emergency navigation.</p>
   <div class="page" id="page-alert">
     <div class="alert-page">
 
@@ -1911,7 +1935,7 @@ function applyClientConfig(config) {
     nearestAedEl.textContent = firstResource ? `${firstResource.name} · ${firstResource.distance || ''}`.trim() : 'No resource configured';
   }
 
-  const locations = Array.isArray(config.locations) ? config.locations.filter(Boolean) : [];
+  const locations = getConfiguredLocations();
   if (locations.length > 0) {
     const currentLocationEl = document.getElementById('location-text');
     if (currentLocationEl && (currentLocationEl.textContent || '').toLowerCase().includes('set your current location')) {
@@ -1919,6 +1943,19 @@ function applyClientConfig(config) {
       currentLocationEl.textContent = locations[0];
     }
   }
+}
+
+function getConfiguredLocations() {
+  const mapLocations = clientConfig && clientConfig.map && Array.isArray(clientConfig.map.locations)
+    ? clientConfig.map.locations.filter(Boolean)
+    : [];
+  if (mapLocations.length > 0) {
+    return mapLocations;
+  }
+
+  return clientConfig && Array.isArray(clientConfig.locations)
+    ? clientConfig.locations.filter(Boolean)
+    : [];
 }
 
 function renderContacts(contacts) {
@@ -2468,17 +2505,21 @@ async function resolveAlert() {
 
 // ─── LOCATION PICKER ───
 function changeLocation() {
-  const configuredLocations = clientConfig && Array.isArray(clientConfig.locations)
-    ? clientConfig.locations.filter(Boolean)
-    : [];
+  const configuredLocations = getConfiguredLocations();
 
   if (configuredLocations.length === 0) {
     showToast('No locations configured for this client');
     return;
   }
 
+  const currentLocationEl = document.getElementById('location-text');
+  const currentLocation = currentLocationEl ? String(currentLocationEl.textContent || '').trim() : '';
+  const currentIndex = configuredLocations.indexOf(currentLocation);
+  locationIndex = currentIndex >= 0 ? currentIndex : locationIndex;
   locationIndex = (locationIndex + 1) % configuredLocations.length;
-  document.getElementById('location-text').textContent = configuredLocations[locationIndex];
+  if (currentLocationEl) {
+    currentLocationEl.textContent = configuredLocations[locationIndex];
+  }
   showToast('Location updated');
 }
 
