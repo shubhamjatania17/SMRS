@@ -26,6 +26,102 @@ const htmlCache = {
 
 const streamClients = new Map();
 
+const FLOOR_SEQUENCE = ['lg', 'g', '1', '2', '3', '4', '5', '6', '7', '8'];
+const FLOOR_LABELS = {
+  lg: 'Lower Ground',
+  g: 'Ground',
+  '1': 'Floor 1',
+  '2': 'Floor 2',
+  '3': 'Floor 3',
+  '4': 'Floor 4',
+  '5': 'Floor 5',
+  '6': 'Floor 6',
+  '7': 'Floor 7',
+  '8': 'Floor 8'
+};
+
+// Coordinates are derived from room labels in each floor SVG (360x534 viewBox).
+const FLOOR_RESOURCE_ROOMS = {
+  lg: [
+    { type: 'AED Unit', icon: '❤️', room: 'Electrical Panel Room', anchorLeft: '36.8%', anchorTop: '91.7%', offsetLeft: '3.0%', offsetTop: '-7.6%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'Maintenance Room', anchorLeft: '80.6%', anchorTop: '91.7%', offsetLeft: '-4.2%', offsetTop: '-7.6%' }
+  ],
+  g: [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR G3', anchorLeft: '83.9%', anchorTop: '30.7%', offsetLeft: '-4.4%', offsetTop: '7.0%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR G1', anchorLeft: '7.2%', anchorTop: '59.3%', offsetLeft: '6.4%', offsetTop: '1.0%' },
+    { type: 'Medical Room', icon: '🏥', room: 'Conference Room', anchorLeft: '52.5%', anchorTop: '63.5%', offsetLeft: '1.6%', offsetTop: '-2.8%' }
+  ],
+  '1': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 104', anchorLeft: '84.2%', anchorTop: '33.1%', offsetLeft: '-5.4%', offsetTop: '6.8%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 101', anchorLeft: '6.9%', anchorTop: '46.0%', offsetLeft: '7.2%', offsetTop: '1.4%' }
+  ],
+  '2': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 204', anchorLeft: '83.6%', anchorTop: '61.0%', offsetLeft: '-5.8%', offsetTop: '0.0%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 201', anchorLeft: '26.9%', anchorTop: '92.8%', offsetLeft: '3.8%', offsetTop: '-8.4%' }
+  ],
+  '3': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 306', anchorLeft: '83.9%', anchorTop: '65.0%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 303', anchorLeft: '6.7%', anchorTop: '26.9%', offsetLeft: '7.4%', offsetTop: '6.2%' }
+  ],
+  '4': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 404', anchorLeft: '83.9%', anchorTop: '65.5%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CL 402', anchorLeft: '6.7%', anchorTop: '53.2%', offsetLeft: '7.2%', offsetTop: '0.6%' }
+  ],
+  '5': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 505', anchorLeft: '83.9%', anchorTop: '65.4%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 503', anchorLeft: '6.4%', anchorTop: '27.1%', offsetLeft: '7.6%', offsetTop: '6.0%' }
+  ],
+  '6': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CR 605', anchorLeft: '83.9%', anchorTop: '67.0%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 604', anchorLeft: '6.7%', anchorTop: '26.9%', offsetLeft: '7.4%', offsetTop: '6.2%' }
+  ],
+  '7': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CL 704', anchorLeft: '83.9%', anchorTop: '68.1%', offsetLeft: '-5.8%', offsetTop: '-0.4%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'Library', anchorLeft: '8.6%', anchorTop: '32.0%', offsetLeft: '5.8%', offsetTop: '5.0%' }
+  ],
+  '8': [
+    { type: 'AED Unit', icon: '❤️', room: 'E. CL 803', anchorLeft: '83.9%', anchorTop: '53.4%', offsetLeft: '-5.8%', offsetTop: '0.4%' },
+    { type: 'First Aid Kit', icon: '🩹', room: 'Pneumatic Lab', anchorLeft: '5.8%', anchorTop: '33.5%', offsetLeft: '6.4%', offsetTop: '4.8%' }
+  ]
+};
+
+function shiftPercent(value, delta) {
+  return `${(parseFloat(value) + parseFloat(delta)).toFixed(1)}%`;
+}
+
+function resolveRoomPinPosition(pin) {
+  const left = shiftPercent(pin.anchorLeft, pin.offsetLeft || 0);
+  const top = shiftPercent(pin.anchorTop, pin.offsetTop || 0);
+
+  return { left, top };
+}
+
+function buildDefaultMapResources() {
+  const resources = [];
+
+  FLOOR_SEQUENCE.forEach(floorKey => {
+    const floorLabel = FLOOR_LABELS[floorKey] || `Floor ${floorKey}`;
+    const roomPins = FLOOR_RESOURCE_ROOMS[floorKey] || [];
+
+    roomPins.forEach(pin => {
+      const position = resolveRoomPinPosition(pin);
+
+      resources.push({
+        icon: pin.icon,
+        name: `${pin.type} — ${pin.room}`,
+        floorKey,
+        distance: `${floorLabel} · ${pin.room}`,
+        status: 'AVAILABLE',
+        left: position.left,
+        top: position.top,
+        markerTitle: `${pin.type} · ${pin.room}`
+      });
+    });
+  });
+
+  return resources;
+}
+
 const DEFAULT_CLIENT_CONFIG = {
   ui: {
     mapTitle: 'Campus Map',
@@ -68,44 +164,7 @@ const DEFAULT_CLIENT_CONFIG = {
       { label: 'SPORTS COMPLEX', subLabel: '', left: '67%', top: '55%', width: '22%', height: '22%' }
     ],
     youMarker: { label: '📍 YOU', left: '41%', top: '26%' },
-    resources: [
-      {
-        icon: '❤️',
-        name: 'AED Unit — Block A Lobby',
-        distance: '~80m · Ground Floor · Near entrance',
-        status: 'AVAILABLE',
-        left: '17%',
-        top: '40%',
-        markerTitle: 'AED · Block A Lobby'
-      },
-      {
-        icon: '❤️',
-        name: 'AED Unit — Library Floor 1',
-        distance: '~140m · Near circulation desk',
-        status: 'AVAILABLE',
-        left: '62%',
-        top: '40%',
-        markerTitle: 'AED · Library Floor 1'
-      },
-      {
-        icon: '🏥',
-        name: 'Medical Room — Block C',
-        distance: '~200m · Ground Floor · Room 001',
-        status: 'AVAILABLE',
-        left: '47%',
-        top: '72%',
-        markerTitle: 'Medical Room'
-      },
-      {
-        icon: '🩹',
-        name: 'First Aid Kit — Canteen',
-        distance: '~110m · Behind serving counter',
-        status: 'AVAILABLE',
-        left: '20%',
-        top: '72%',
-        markerTitle: 'First Aid Kit · Canteen'
-      }
-    ]
+    resources: buildDefaultMapResources()
   }
 };
 
@@ -151,11 +210,44 @@ function sanitizeClientId(value) {
   return (normalized || DEFAULT_CLIENT_ID).slice(0, 64);
 }
 
+function inferResourceFloorKey(resource) {
+  const explicit = String(resource.floorKey || resource.floor || '').trim().toLowerCase();
+  if (explicit) {
+    return explicit;
+  }
+
+  const nameAndDistance = [resource.name, resource.distance].filter(Boolean).join(' ').toLowerCase();
+  if (nameAndDistance.includes('floor 1') || nameAndDistance.includes('1st floor')) {
+    return '1';
+  }
+
+  return 'g';
+}
+
+function normalizeMapConfig(mapConfig) {
+  if (!mapConfig || typeof mapConfig !== 'object') {
+    return mapConfig;
+  }
+
+  const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
+  return {
+    ...mapConfig,
+    resources: resources.map(resource => ({
+      ...resource,
+      floorKey: inferResourceFloorKey(resource)
+    }))
+  };
+}
+
 function normalizeTenant(rawTenant) {
   const source = rawTenant || {};
-  const normalizedConfig = source.config && typeof source.config === 'object'
+  const baseConfig = source.config && typeof source.config === 'object'
     ? source.config
     : getDefaultClientConfig();
+  const normalizedConfig = {
+    ...baseConfig,
+    map: normalizeMapConfig(baseConfig.map)
+  };
 
   return {
     ...createTenantState(),
@@ -277,6 +369,29 @@ function sendText(res, statusCode, content, contentType = 'text/plain; charset=u
     'Access-Control-Allow-Origin': '*'
   });
   res.end(content);
+}
+
+function getMimeType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.svg':
+      return 'image/svg+xml';
+    case '.png':
+      return 'image/png';
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.webp':
+      return 'image/webp';
+    case '.css':
+      return 'text/css; charset=utf-8';
+    case '.js':
+      return 'application/javascript; charset=utf-8';
+    case '.json':
+      return 'application/json; charset=utf-8';
+    default:
+      return 'application/octet-stream';
+  }
 }
 
 function readBody(req) {
@@ -482,6 +597,33 @@ async function routeRequest(req, res) {
       return;
     }
     sendHtml(res, html.content, html.etag);
+    return;
+  }
+
+  if (req.method === 'GET' && pathname.startsWith('/assets/')) {
+    const relativePath = pathname.replace(/^\/+/, '');
+    const filePath = path.join(ROOT_DIR, relativePath);
+    const normalizedRoot = path.resolve(ROOT_DIR);
+    const normalizedFilePath = path.resolve(filePath);
+
+    if (!normalizedFilePath.startsWith(normalizedRoot)) {
+      sendText(res, 403, 'Forbidden');
+      return;
+    }
+
+    if (!fs.existsSync(normalizedFilePath) || !fs.statSync(normalizedFilePath).isFile()) {
+      sendText(res, 404, 'Not found');
+      return;
+    }
+
+    const content = fs.readFileSync(normalizedFilePath);
+    res.writeHead(200, {
+      'Content-Type': getMimeType(normalizedFilePath),
+      'Content-Length': content.length,
+      'Cache-Control': 'public, max-age=300',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(content);
     return;
   }
 

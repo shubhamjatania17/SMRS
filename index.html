@@ -873,13 +873,29 @@ body::before {
 
 .map-canvas {
   width: 100%;
-  height: 280px;
+  max-width: 420px;
+  margin: 0 auto 20px;
+  aspect-ratio: 360 / 534;
+  min-height: 320px;
+  max-height: 74vh;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
   position: relative;
   overflow: hidden;
-  margin-bottom: 20px;
+}
+
+.map-floor-plan-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.map-floor-plan {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .map-grid-bg {
@@ -888,6 +904,33 @@ body::before {
     linear-gradient(var(--border) 1px, transparent 1px),
     linear-gradient(90deg, var(--border) 1px, transparent 1px);
   background-size: 44px 44px;
+  opacity: 0.25;
+  z-index: 2;
+}
+
+.map-floor-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.map-floor-chip {
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.map-floor-chip.active {
+  border-color: var(--red);
+  color: var(--text);
+  background: var(--red-bg);
 }
 
 .map-path {
@@ -907,12 +950,13 @@ body::before {
   letter-spacing: 0.04em;
   text-align: center;
   line-height: 1.4;
+  z-index: 4;
 }
 
 .m-pin {
   position: absolute;
   display: flex; align-items: center; justify-content: center;
-  z-index: 10;
+  z-index: 8;
 }
 .m-pin-dot {
   width: 18px; height: 18px;
@@ -927,7 +971,7 @@ body::before {
   50% { box-shadow: 0 0 0 8px var(--red-bg); }
 }
 
-.m-aed { position: absolute; font-size: 16px; z-index: 8; cursor: pointer; }
+.m-aed { position: absolute; font-size: 16px; z-index: 7; cursor: pointer; }
 
 .map-incident-label {
   position: absolute;
@@ -942,6 +986,7 @@ body::before {
   color: var(--red);
   letter-spacing: 0.08em;
   white-space: nowrap;
+  z-index: 9;
 }
 
 .map-you {
@@ -952,7 +997,7 @@ body::before {
   border-radius: 10px;
   padding: 3px 8px;
   font-family: var(--font-mono);
-  z-index: 9;
+  z-index: 8;
 }
 
 .resource-list { display: flex; flex-direction: column; gap: 8px; }
@@ -1564,80 +1609,25 @@ body::before {
   <!-- ─── PAGE: MAP ─── -->
   <div class="page" id="page-map">
     <div class="map-page">
-      <div class="page-heading">Campus Map</div>
-      <p class="page-sub">AED units, first aid kits, and the medical room. In an emergency, go to the nearest one.</p>
+      <div class="page-heading" id="map-page-title-ui">Campus Map</div>
+      <p class="page-sub" id="map-page-subtitle-ui">AED units, first aid kits, and the medical room. In an emergency, go to the nearest one.</p>
+
+      <div class="map-floor-selector" id="map-floor-chips"></div>
 
       <div class="map-canvas">
-        <div class="map-grid-bg"></div>
-
-        <!-- Buildings -->
-        <div class="m-building" style="left:8%;top:10%;width:20%;height:24%">BLOCK A<br>CSE/IT</div>
-        <div class="m-building" style="left:34%;top:10%;width:20%;height:24%">BLOCK B<br>ECE/ME</div>
-        <div class="m-building" style="left:60%;top:10%;width:24%;height:24%">LIBRARY</div>
-        <div class="m-building" style="left:8%;top:55%;width:25%;height:22%">CANTEEN</div>
-        <div class="m-building" style="left:40%;top:55%;width:20%;height:22%">BLOCK C<br>MECH</div>
-        <div class="m-building" style="left:67%;top:55%;width:22%;height:22%">SPORTS<br>COMPLEX</div>
-
-        <!-- YOU ARE HERE -->
-        <div class="map-you" style="left:41%;top:26%">📍 YOU</div>
-
-        <!-- Active incident -->
-        <div class="m-pin" style="left:43%;top:22%">
-          <div class="m-pin-dot"></div>
+        <div class="map-floor-plan-layer">
+          <img id="map-floor-plan-image" class="map-floor-plan" src="/assets/floors/floor_g_dark.svg" alt="Floor plan"/>
         </div>
-
-        <!-- AED markers -->
-        <div class="m-aed" style="left:17%;top:40%" title="AED · Block A Lobby">❤️</div>
-        <div class="m-aed" style="left:62%;top:40%" title="AED · Library">❤️</div>
-        <div class="m-aed" style="left:47%;top:72%" title="Medical Room">🏥</div>
-        <div class="m-aed" style="left:20%;top:72%" title="First Aid Kit · Canteen">🩹</div>
-
-        <div class="map-incident-label">🔴 Active Incident · Block B Rm 203</div>
+        <div class="map-grid-bg"></div>
+        <div id="map-buildings-layer" data-map-layer="buildings"></div>
+        <div id="map-you-layer" data-map-layer="you"></div>
+        <div id="map-incident-pin-layer" data-map-layer="incident-pin"></div>
+        <div id="map-resource-markers-layer" data-map-layer="resources"></div>
+        <div class="map-incident-label" id="map-incident-label" data-map-layer="incident-label">No active incident</div>
       </div>
 
       <div class="contacts-label" style="margin-bottom:12px">Medical Resources</div>
-      <div class="resource-list">
-        <div class="resource-row">
-          <div class="resource-left">
-            <div class="resource-icon">❤️</div>
-            <div>
-              <div class="resource-name">AED Unit — Block A Lobby</div>
-              <div class="resource-dist">~80m · Ground Floor · Near entrance</div>
-            </div>
-          </div>
-          <div class="resource-status">AVAILABLE</div>
-        </div>
-        <div class="resource-row">
-          <div class="resource-left">
-            <div class="resource-icon">❤️</div>
-            <div>
-              <div class="resource-name">AED Unit — Library Floor 1</div>
-              <div class="resource-dist">~140m · Near circulation desk</div>
-            </div>
-          </div>
-          <div class="resource-status">AVAILABLE</div>
-        </div>
-        <div class="resource-row">
-          <div class="resource-left">
-            <div class="resource-icon">🏥</div>
-            <div>
-              <div class="resource-name">Medical Room — Block C</div>
-              <div class="resource-dist">~200m · Ground Floor · Room 001</div>
-            </div>
-          </div>
-          <div class="resource-status">AVAILABLE</div>
-        </div>
-        <div class="resource-row">
-          <div class="resource-left">
-            <div class="resource-icon">🩹</div>
-            <div>
-              <div class="resource-name">First Aid Kit — Canteen</div>
-              <div class="resource-dist">~110m · Behind serving counter</div>
-            </div>
-          </div>
-          <div class="resource-status">AVAILABLE</div>
-        </div>
-      </div>
+      <div class="resource-list" id="medical-resource-list"></div>
 
     </div>
   </div><!-- /page-map -->
@@ -1774,11 +1764,25 @@ let alertSeconds = 0;
 let alertBaseTime = Date.now();
 let currentAlertId = null;
 let toastTimerId = null;
+let currentMapFloorKey = 'g';
 
 const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
 const CLIENT_STORAGE_KEY = 'smrs_client_id';
 let clientConfig = null;
 let locationIndex = 0;
+
+const DEFAULT_FLOOR_PLANS = [
+  { key: 'lg', shortLabel: 'LG', label: 'Lower Ground', src: '/assets/floors/floor_lg_dark.svg' },
+  { key: 'g', shortLabel: 'G', label: 'Ground', src: '/assets/floors/floor_g_dark.svg' },
+  { key: '1', shortLabel: '1', label: '1st Floor', src: '/assets/floors/floor_1_dark.svg' },
+  { key: '2', shortLabel: '2', label: '2nd Floor', src: '/assets/floors/floor_2_dark.svg' },
+  { key: '3', shortLabel: '3', label: '3rd Floor', src: '/assets/floors/floor_3_dark.svg' },
+  { key: '4', shortLabel: '4', label: '4th Floor', src: '/assets/floors/floor_4_dark.svg' },
+  { key: '5', shortLabel: '5', label: '5th Floor', src: '/assets/floors/floor_5_dark.svg' },
+  { key: '6', shortLabel: '6', label: '6th Floor', src: '/assets/floors/floor_6_dark.svg' },
+  { key: '7', shortLabel: '7', label: '7th Floor', src: '/assets/floors/floor_7_dark.svg' },
+  { key: '8', shortLabel: '8', label: '8th Floor', src: '/assets/floors/floor_8_dark.svg' }
+];
 
 const dom = {
   pages: [],
@@ -1886,14 +1890,20 @@ function applyClientConfig(config) {
   renderContacts(config.contacts || []);
   renderMap(config.map || {});
 
-  const mapTitleEl = document.getElementById('map-page-title');
-  const mapSubTitleEl = document.getElementById('map-page-subtitle');
-  if (mapTitleEl) {
-    mapTitleEl.textContent = (config.ui && config.ui.mapTitle) || 'Campus Map';
-  }
-  if (mapSubTitleEl) {
-    mapSubTitleEl.textContent = (config.ui && config.ui.mapSubtitle) || 'Medical resources and key campus areas for emergency navigation.';
-  }
+  const mapTitles = [
+    document.getElementById('map-page-title'),
+    document.getElementById('map-page-title-ui')
+  ].filter(Boolean);
+  const mapSubTitles = [
+    document.getElementById('map-page-subtitle'),
+    document.getElementById('map-page-subtitle-ui')
+  ].filter(Boolean);
+  mapTitles.forEach(el => {
+    el.textContent = (config.ui && config.ui.mapTitle) || 'Campus Map';
+  });
+  mapSubTitles.forEach(el => {
+    el.textContent = (config.ui && config.ui.mapSubtitle) || 'Medical resources and key campus areas for emergency navigation.';
+  });
 
   const nearestAedEl = document.getElementById('quick-nearest-aed');
   if (nearestAedEl) {
@@ -1944,12 +1954,15 @@ function renderContacts(contacts) {
 }
 
 function renderMap(mapConfig) {
-  const buildingsLayerEl = document.getElementById('map-buildings-layer');
-  const youLayerEl = document.getElementById('map-you-layer');
-  const markerLayerEl = document.getElementById('map-resource-markers-layer');
-  const resourceListEl = document.getElementById('medical-resource-list');
+  const mapPageEl = document.getElementById('page-map');
+  const buildingsLayerEl = mapPageEl ? mapPageEl.querySelector('[data-map-layer="buildings"]') : null;
+  const youLayerEl = mapPageEl ? mapPageEl.querySelector('[data-map-layer="you"]') : null;
+  const markerLayerEl = mapPageEl ? mapPageEl.querySelector('[data-map-layer="resources"]') : null;
+  const resourceListEl = mapPageEl ? mapPageEl.querySelector('#medical-resource-list') : null;
+  const floorPlanImageEl = mapPageEl ? mapPageEl.querySelector('#map-floor-plan-image') : null;
+  const floorChipsEl = mapPageEl ? mapPageEl.querySelector('#map-floor-chips') : null;
 
-  if (!buildingsLayerEl || !youLayerEl || !markerLayerEl || !resourceListEl) {
+  if (!buildingsLayerEl || !youLayerEl || !markerLayerEl || !resourceListEl || !floorPlanImageEl || !floorChipsEl) {
     return;
   }
 
@@ -1960,17 +1973,52 @@ function renderMap(mapConfig) {
 
   const buildings = Array.isArray(mapConfig.buildings) ? mapConfig.buildings : [];
   const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
+  const floorPlans = Array.isArray(mapConfig.floorPlans) && mapConfig.floorPlans.length > 0
+    ? mapConfig.floorPlans
+    : DEFAULT_FLOOR_PLANS;
 
-  buildings.forEach(building => {
-    const block = document.createElement('div');
-    block.className = 'm-building';
-    block.style.left = building.left || '0%';
-    block.style.top = building.top || '0%';
-    block.style.width = building.width || '20%';
-    block.style.height = building.height || '20%';
-    block.innerHTML = (building.label || '').toUpperCase() + (building.subLabel ? '<br>' + building.subLabel : '');
-    buildingsLayerEl.appendChild(block);
+  if (!floorPlans.some(floor => floor.key === currentMapFloorKey)) {
+    currentMapFloorKey = floorPlans[0].key;
+  }
+
+  const activeFloorPlan = floorPlans.find(floor => floor.key === currentMapFloorKey) || floorPlans[0];
+  floorPlanImageEl.src = activeFloorPlan.src;
+  floorPlanImageEl.alt = activeFloorPlan.label + ' floor plan';
+
+  const resourcesForFloor = resources.filter(resource => {
+    const floorKey = String(resource.floorKey || resource.floor || 'g').trim().toLowerCase();
+    return floorKey === currentMapFloorKey;
   });
+
+  floorChipsEl.innerHTML = '';
+  floorPlans.forEach(floor => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'map-floor-chip' + (floor.key === currentMapFloorKey ? ' active' : '');
+    chip.textContent = floor.shortLabel || floor.label || floor.key;
+    chip.title = floor.label || floor.key;
+    chip.onclick = () => {
+      if (floor.key === currentMapFloorKey) {
+        return;
+      }
+      currentMapFloorKey = floor.key;
+      renderMap(clientConfig && clientConfig.map ? clientConfig.map : {});
+    };
+    floorChipsEl.appendChild(chip);
+  });
+
+  if (floorPlans.length === 0) {
+    buildings.forEach(building => {
+      const block = document.createElement('div');
+      block.className = 'm-building';
+      block.style.left = building.left || '0%';
+      block.style.top = building.top || '0%';
+      block.style.width = building.width || '20%';
+      block.style.height = building.height || '20%';
+      block.innerHTML = (building.label || '').toUpperCase() + (building.subLabel ? '<br>' + building.subLabel : '');
+      buildingsLayerEl.appendChild(block);
+    });
+  }
 
   if (mapConfig.youMarker) {
     const you = document.createElement('div');
@@ -1981,7 +2029,7 @@ function renderMap(mapConfig) {
     youLayerEl.appendChild(you);
   }
 
-  resources.forEach(resource => {
+  resourcesForFloor.forEach(resource => {
     const marker = document.createElement('div');
     marker.className = 'm-aed';
     marker.style.left = resource.left || '50%';
@@ -2008,6 +2056,21 @@ function renderMap(mapConfig) {
     row.querySelector('.resource-status').textContent = resource.status || 'AVAILABLE';
     resourceListEl.appendChild(row);
   });
+
+  if (resourcesForFloor.length === 0) {
+    const row = document.createElement('div');
+    row.className = 'resource-row';
+    row.innerHTML =
+      '<div class="resource-left">' +
+      '<div class="resource-icon">ℹ️</div>' +
+      '<div>' +
+      '<div class="resource-name">No medical resources pinned on this floor</div>' +
+      '<div class="resource-dist">Switch floor to find nearest AED, first aid, or medical room.</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="resource-status">N/A</div>';
+    resourceListEl.appendChild(row);
+  }
 }
 
 function renderIncidentLog(history) {
@@ -2206,8 +2269,9 @@ function applyRealtimeState(payload) {
     stopAlertTimer();
   }
 
-  const incidentLabelEl = document.getElementById('map-incident-label');
-  const incidentPinLayerEl = document.getElementById('map-incident-pin-layer');
+  const mapPageEl = document.getElementById('page-map');
+  const incidentLabelEl = mapPageEl ? mapPageEl.querySelector('[data-map-layer="incident-label"]') : document.getElementById('map-incident-label');
+  const incidentPinLayerEl = mapPageEl ? mapPageEl.querySelector('[data-map-layer="incident-pin"]') : document.getElementById('map-incident-pin-layer');
   if (incidentPinLayerEl) {
     incidentPinLayerEl.innerHTML = '';
   }
