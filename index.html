@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>MedResponse — Campus Emergency</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -31,17 +32,27 @@
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --font-mono: 'DM Mono', monospace;
+  --app-height: 100vh;
+  --top-bar-height: 76px;
+  --bottom-nav-height: 78px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
 
+html, body { min-height: 100%; }
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  min-height: 100vh;
+  min-height: var(--app-height);
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -60,12 +71,13 @@ body::before {
 /* ─── LOGIN SCREEN ─── */
 /* ─── LOGIN SCREEN ─── */
 #login-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 24px;
+  padding: calc(32px + var(--safe-top)) 24px calc(32px + var(--safe-bottom));
   position: relative;
   overflow: hidden;
 }
@@ -188,7 +200,7 @@ body::before {
 
 .role-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
 
@@ -248,10 +260,19 @@ body::before {
 /* ─── MAIN APP ─── */
 #app { display: none; }
 
+#app {
+  width: min(100%, 960px);
+  margin: 0 auto;
+}
+
 /* ─── BOTTOM NAV ─── */
 .bottom-nav {
   position: fixed;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 960px);
+  min-height: var(--bottom-nav-height);
   background: rgba(10,10,12,0.9);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -259,7 +280,7 @@ body::before {
   display: none;
   align-items: center;
   justify-content: space-around;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  padding: 8px max(8px, var(--safe-right)) calc(8px + var(--safe-bottom)) max(8px, var(--safe-left));
   z-index: 100;
 }
 
@@ -289,12 +310,17 @@ body::before {
 }
 
 /* ─── PAGE CONTAINER ─── */
-.page { display: none; min-height: calc(100vh - 70px); padding-bottom: 80px; }
+.page {
+  display: none;
+  min-height: calc(var(--app-height) - var(--bottom-nav-height));
+  min-height: calc(100dvh - var(--bottom-nav-height));
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 72px);
+}
 .page.active { display: block; }
 
 /* ─── TOP BAR ─── */
 .top-bar {
-  padding: 20px 20px 0;
+  padding: calc(20px + var(--safe-top)) clamp(16px, 4vw, 24px) 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -363,7 +389,7 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 clamp(16px, 4vw, 24px);
   gap: 28px;
 }
 
@@ -530,7 +556,7 @@ body::before {
 /* Quick action cards */
 .quick-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   width: 100%;
   max-width: 400px;
@@ -621,7 +647,7 @@ body::before {
 }
 
 /* ─── ALERT ACTIVE SCREEN ─── */
-.alert-page { padding: 0 20px; }
+.alert-page { padding: 0 clamp(16px, 4vw, 24px); }
 
 .alert-banner {
   background: var(--red-bg);
@@ -682,7 +708,7 @@ body::before {
 }
 .alert-timer {
   font-family: var(--font-mono);
-  font-size: 52px;
+  font-size: clamp(44px, 11vw, 68px);
   font-weight: 500;
   color: var(--red);
   letter-spacing: 0.04em;
@@ -699,7 +725,7 @@ body::before {
 
 .dispatch-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -794,11 +820,11 @@ body::before {
 .btn-escalate:hover { background: var(--red); color: #fff; }
 
 /* ─── GUIDES SCREEN ─── */
-.guides-page { padding: 0 20px; }
+.guides-page { padding: 0 clamp(16px, 4vw, 24px); }
 
 .page-heading {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: clamp(26px, 5vw, 38px);
   font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 6px;
@@ -923,7 +949,7 @@ body::before {
 .do-not-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
 
 /* ─── MAP SCREEN ─── */
-.map-page { padding: 0 20px; }
+.map-page { padding: 0 clamp(16px, 4vw, 24px); }
 
 .map-canvas {
   width: 100%;
@@ -1115,11 +1141,11 @@ body::before {
 }
 
 /* ─── STAFF DASHBOARD ─── */
-.staff-page { padding: 0 20px; }
+.staff-page { padding: 0 clamp(16px, 4vw, 24px); }
 
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -1480,7 +1506,7 @@ body::before {
 /* ─── TOAST ─── */
 .toast {
   position: fixed;
-  top: 20px;
+  top: calc(20px + var(--safe-top));
   left: 50%; transform: translateX(-50%);
   background: var(--surface);
   border: 1px solid var(--border2);
@@ -1504,6 +1530,77 @@ body::before {
 
 /* ─── UTILITY ─── */
 .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+@media (max-width: 480px) {
+  :root {
+    --bottom-nav-height: 84px;
+  }
+
+  .page {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 88px);
+  }
+
+  .top-bar {
+    margin-bottom: 18px;
+  }
+
+  .login-headline {
+    font-size: clamp(28px, 9vw, 32px);
+  }
+
+  .sos-zone {
+    transform: scale(0.92);
+  }
+
+  .alert-timer {
+    font-size: clamp(40px, 18vw, 56px);
+  }
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 56px);
+  }
+
+  .map-canvas {
+    max-width: 520px;
+  }
+
+  .guide-list,
+  .resource-list,
+  .contacts-strip,
+  .instructions-card,
+  .dispatch-row,
+  .stat-row,
+  .alert-actions {
+    max-width: 760px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sos-page {
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav {
+    border-radius: 20px 20px 0 0;
+  }
+
+  .page-heading {
+    margin-bottom: 10px;
+  }
+
+  .sos-page,
+  .alert-page,
+  .guides-page,
+  .map-page,
+  .staff-page {
+    padding-inline: 32px;
+  }
+}
 </style>
 </head>
 <body>
@@ -2059,6 +2156,16 @@ const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onr
 const CLIENT_STORAGE_KEY = 'smrs_client_id';
 let clientConfig = null;
 
+function setAppHeightVar() {
+  const viewportHeight = window.visualViewport && window.visualViewport.height
+    ? window.visualViewport.height
+    : window.innerHeight;
+
+  if (viewportHeight) {
+    document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
+  }
+}
+
 const DEFAULT_FLOOR_PLANS = [
   { key: 'lg', shortLabel: 'LG', label: 'Lower Ground', src: '/assets/floors/floor_lg_dark.svg' },
   { key: 'g', shortLabel: 'G', label: 'Ground', src: '/assets/floors/floor_g_dark.svg' },
@@ -2087,6 +2194,12 @@ function initDomCache() {
 }
 
 initDomCache();
+setAppHeightVar();
+window.addEventListener('resize', setAppHeightVar, { passive: true });
+window.addEventListener('orientationchange', setAppHeightVar, { passive: true });
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', setAppHeightVar, { passive: true });
+}
 
 function isStaffDashboardOnlyRole(role) {
   return ['staff', 'admin'].includes(String(role || '').toLowerCase());
