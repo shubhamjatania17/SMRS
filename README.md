@@ -30,6 +30,7 @@ The system currently uses file-based persistence (`data/state.json`) and support
 - Active alert deduplication and conflict handling.
 - Alert resolution flow with resolver identity.
 - Alert history.
+- Functional in Real-Time
 
 ## MVP Link
 
@@ -41,8 +42,9 @@ The system currently uses file-based persistence (`data/state.json`) and support
 
 - Multi-campus and multi-building tenancy.
 - Multiple concurrent active alerts.
-- Real-time updates with WebSocket/SSE.
+- Real-time updates with WebSocket/SSE.(Overwriting current real time features)
 - Notification integrations (SMS, email, WhatsApp).
-- GIS map integration with floor plans.
 - SLA dashboards for response-time tracking.
 - Incident export and compliance reporting.
+- AI based guidance chatbot
+- Integration in college mainframe as a locally hosted service.
