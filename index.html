@@ -58,6 +58,7 @@ body::before {
 }
 
 /* ─── LOGIN SCREEN ─── */
+/* ─── LOGIN SCREEN ─── */
 #login-screen {
   min-height: 100vh;
   display: flex;
@@ -255,7 +256,7 @@ body::before {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-top: 1px solid var(--border);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-around;
   padding: 8px 0 max(8px, env(safe-area-inset-bottom));
@@ -1245,6 +1246,128 @@ body::before {
 .ap-busy { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
 .ap-off { background: var(--surface3); color: var(--text3); border: 1px solid var(--border2); }
 
+/* ─── INCIDENT DETAIL MODAL ─── */
+.incident-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,12,0.95);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 24px;
+  gap: 20px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+}
+.incident-modal.visible { display: flex; }
+
+.incident-modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.incident-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.incident-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.incident-modal-info {
+  flex: 1;
+}
+
+.incident-modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.incident-modal-status {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text2);
+  letter-spacing: 0.06em;
+}
+
+.incident-modal-detail {
+  padding: 12px;
+  background: var(--surface2);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.incident-detail-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.incident-detail-value {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.incident-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-modal-resolve {
+  padding: 12px;
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  color: var(--green);
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-modal-resolve:hover { background: var(--green); color: #000; }
+
+.btn-modal-close {
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-modal-close:hover { border-color: var(--border); color: var(--text2); }
+
 /* ─── SOS SENT STATE ─── */
 .sos-sent-overlay {
   display: none;
@@ -1504,35 +1627,84 @@ body::before {
         <div class="quick-card" onclick="showPage('map')">
           <div class="quick-card-icon">🗺️</div>
           <div class="quick-card-title">Find Medical Room</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Do not move the limb.</strong> Keep the student still and calm.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">Improvise a splint with a <strong>rolled bag, ruler, or cloth</strong> to immobilize.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">Wrap ice in cloth and apply to reduce swelling. <strong>Never apply ice directly.</strong></div></div>
-          </div>
-        </div>
-
-        <!-- HEAT EXHAUSTION -->
-        <div class="guide-card" data-cat="stable" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">🥵</div>
-            <div class="g-info">
-              <div class="g-title">Heat Exhaustion</div>
-              <div class="g-desc">Heavy sweating, weakness, dizziness</div>
-            </div>
-            <div class="g-badge gb-low">STABLE</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text">Move them to a <strong>cool, shaded, ventilated</strong> area immediately.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">Give <strong>cool water</strong> to sip slowly if they are conscious and can swallow.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">Apply cool wet cloth to <strong>forehead, neck, and wrists</strong>.</div></div>
-            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">If they don't improve in 15 min or faint, <strong>press SOS</strong>.</div></div>
-          </div>
+          <div class="quick-card-desc">Locate nearest AED or medical facilities</div>
         </div>
 
       </div>
     </div>
-  </div><!-- /page-guides -->
+    </div>
+  </div><!-- /page-sos -->
+
+  <!-- ─── PAGE: ALERT ─── -->
+  <div class="page" id="page-alert">
+    <div class="alert-page">
+      <!-- ALERT BANNER -->
+      <div class="alert-banner">
+        <div class="alert-pulse"></div>
+        <div>
+          <div class="alert-level-tag">🔴 Critical Incident</div>
+          <div class="alert-title-main">Medical Emergency Reported</div>
+          <div class="alert-loc">📍 <span id="alert-location-display">Block B · Room 203 · F2</span></div>
+        </div>
+      </div>
+
+      <!-- TIMER -->
+      <div class="alert-timer-block">
+        <div class="alert-timer" id="alert-timer-display">00:47</div>
+        <div class="alert-timer-label">Time to Response</div>
+      </div>
+
+      <!-- DISPATCH STATUS -->
+      <div class="dispatch-row" id="dispatch-status-row">
+        <div class="dispatch-card">
+          <div class="d-icon">🚑</div>
+          <div class="d-name">Ambulance</div>
+          <div class="d-status ds-route">EN ROUTE</div>
+        </div>
+        <div class="dispatch-card">
+          <div class="d-icon">👨‍⚕️</div>
+          <div class="d-name">Medical Team</div>
+          <div class="d-status ds-sent">SENT</div>
+        </div>
+        <div class="dispatch-card">
+          <div class="d-icon">🚪</div>
+          <div class="d-name">Security</div>
+          <div class="d-status ds-ok">OK</div>
+        </div>
+      </div>
+
+      <!-- INSTRUCTIONS -->
+      <div class="instructions-card">
+        <div class="instructions-head">
+          ⚠️ Emergency Instructions
+        </div>
+        <div class="instructions-body">
+          <div class="i-step">
+            <div class="i-num">1</div>
+            <div class="i-text">Keep the person <strong>calm and still</strong>. Do not move them unless in immediate danger.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">2</div>
+            <div class="i-text">Clear the area around them. Ask others to <strong>step back</strong> and give space.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">3</div>
+            <div class="i-text">Check <strong>breathing and consciousness</strong>. Be ready to perform CPR if needed.</div>
+          </div>
+          <div class="i-step">
+            <div class="i-num">4</div>
+            <div class="i-text">Medical team will arrive in <strong>2-3 minutes</strong>. Keep your phone nearby.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="alert-actions">
+        <button class="btn-resolve" onclick="resolveIncident()">✓ Resolved</button>
+        <button class="btn-escalate" onclick="escalateIncident()">⬆ Escalate</button>
+      </div>
+    </div>
+  </div><!-- /page-alert -->
 
   <!-- ─── PAGE: MAP ─── -->
   <div class="page" id="page-map">
@@ -1616,27 +1788,60 @@ body::before {
     </div>
   </div><!-- /page-staff -->
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showPage('sos')" id="nav-sos">
-      <div class="nav-icon">🚨</div>
-      <div class="nav-label">SOS</div>
-    </button>
-    <button class="nav-item" onclick="showPage('alert')" id="nav-alert">
-      <div class="nav-icon">⚡</div>
-      <div class="nav-label">Alert</div>
-    </button>
-    <button class="nav-item" onclick="showPage('map')" id="nav-map">
-      <div class="nav-icon">🗺️</div>
-      <div class="nav-label">Map</div>
-    </button>
-    <button class="nav-item" onclick="showPage('staff')" id="nav-staff">
-      <div class="nav-icon">👁️</div>
-      <div class="nav-label">Staff</div>
-    </button>
-  </nav>
-
 </div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showPage('sos')" id="nav-sos">
+    <div class="nav-icon">🚨</div>
+    <div class="nav-label">SOS</div>
+  </button>
+  <button class="nav-item" onclick="showPage('alert')" id="nav-alert">
+    <div class="nav-icon">⚡</div>
+    <div class="nav-label">Alert</div>
+  </button>
+  <button class="nav-item" onclick="showPage('map')" id="nav-map">
+    <div class="nav-icon">🗺️</div>
+    <div class="nav-label">Map</div>
+  </button>
+  <button class="nav-item" onclick="showPage('staff')" id="nav-staff">
+    <div class="nav-icon">👁️</div>
+    <div class="nav-label">Staff</div>
+  </button>
+</nav>
+
+<!-- INCIDENT DETAIL MODAL -->
+<div class="incident-modal" id="incident-modal">
+  <div class="incident-modal-content">
+    <div class="incident-modal-header">
+      <div class="incident-modal-icon">🚨</div>
+      <div class="incident-modal-info">
+        <div class="incident-modal-title" id="incident-modal-title">Emergency Alert</div>
+        <div class="incident-modal-status" id="incident-modal-status">Status: Active</div>
+      </div>
+    </div>
+
+    <div class="incident-modal-detail">
+      <div class="incident-detail-label">Location</div>
+      <div class="incident-detail-value" id="incident-modal-location">--</div>
+    </div>
+
+    <div class="incident-modal-detail">
+      <div class="incident-detail-label">Reported by</div>
+      <div class="incident-detail-value" id="incident-modal-reporter">--</div>
+    </div>
+
+    <div class="incident-modal-detail">
+      <div class="incident-detail-label">Time Elapsed</div>
+      <div class="incident-detail-value" id="incident-modal-time">--</div>
+    </div>
+
+    <div class="incident-modal-actions">
+      <button class="btn-modal-resolve" onclick="resolveIncidentFromModal()">✓ Resolve</button>
+      <button class="btn-modal-close" onclick="closeIncidentModal()">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- SOS SENT OVERLAY -->
 <div class="sos-sent-overlay" id="sos-overlay">
@@ -2031,6 +2236,9 @@ function renderIncidentLog(history) {
   history.slice(0, 10).forEach(item => {
     const incident = document.createElement('div');
     incident.className = 'incident-item';
+    incident.style.cursor = 'pointer';
+    incident.dataset.incidentId = item.id || '';
+    incident.dataset.incidentStatus = item.status || '';
 
     const sevClass = item.status === 'active' ? 'inc-sev-high' : 'inc-sev-low';
     const badgeClass = item.status === 'active' ? 'ib-active' : 'ib-resolved';
@@ -2048,6 +2256,11 @@ function renderIncidentLog(history) {
 
     incident.querySelector('.inc-type').textContent = title;
     incident.querySelector('.inc-meta').textContent = meta;
+    
+    incident.addEventListener('click', () => {
+      showIncidentDetails(item);
+    });
+    
     listEl.appendChild(incident);
   });
 }
@@ -2309,6 +2522,7 @@ async function doLogin() {
   document.getElementById('display-name').textContent = user.displayName || name.split(' ')[0];
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  document.querySelector('.bottom-nav').style.display = 'flex';
 
   applyRoleAccessControls();
   applyRealtimeState(response.data);
@@ -2404,6 +2618,92 @@ async function resolveAlert() {
   applyRealtimeState(response.data);
   showToast('Incident marked as resolved');
   showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
+}
+
+function resolveIncident() {
+  resolveAlert();
+}
+
+async function escalateIncident() {
+  if (!currentAlertId) {
+    showToast('No active alert to escalate');
+    return;
+  }
+
+  const response = await apiRequest('/api/alerts/' + currentAlertId + '/escalate', {
+    method: 'POST',
+    body: JSON.stringify({
+      escalatedBy: userName || 'Staff',
+      role: selectedRole,
+      clientId: currentClientId,
+      severity: 'critical'
+    })
+  });
+
+  if (!response.ok) {
+    showToast((response.data && response.data.message) || 'Unable to escalate alert');
+    return;
+  }
+
+  applyRealtimeState(response.data);
+  showToast('Incident escalated');
+}
+
+// ─── STAFF INCIDENT MANAGEMENT ───
+let selectedIncidentForModal = null;
+
+function showIncidentDetails(incident) {
+  selectedIncidentForModal = incident;
+  const modal = document.getElementById('incident-modal');
+  if (!modal) return;
+
+  document.getElementById('incident-modal-title').textContent = incident.title || 'Emergency Alert';
+  document.getElementById('incident-modal-status').textContent = 'Status: ' + (incident.status ? incident.status.toUpperCase() : 'UNKNOWN');
+  document.getElementById('incident-modal-location').textContent = incident.location || '--';
+  document.getElementById('incident-modal-reporter').textContent = incident.userName || '--';
+  
+  const elapsed = incident.createdAt ? Math.floor((Date.now() - new Date(incident.createdAt).getTime()) / 1000) : 0;
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  document.getElementById('incident-modal-time').textContent = minutes + 'm ' + seconds + 's';
+
+  modal.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeIncidentModal() {
+  const modal = document.getElementById('incident-modal');
+  if (modal) {
+    modal.classList.remove('visible');
+  }
+  selectedIncidentForModal = null;
+  document.body.style.overflow = '';
+}
+
+async function resolveIncidentFromModal() {
+  if (!selectedIncidentForModal || !selectedIncidentForModal.id) {
+    showToast('No incident selected');
+    return;
+  }
+
+  currentAlertId = selectedIncidentForModal.id;
+  const response = await apiRequest('/api/alerts/' + currentAlertId + '/resolve', {
+    method: 'POST',
+    body: JSON.stringify({
+      resolvedBy: userName || 'Staff',
+      role: selectedRole,
+      clientId: currentClientId
+    })
+  });
+
+  if (!response.ok) {
+    showToast((response.data && response.data.message) || 'Unable to resolve incident');
+    return;
+  }
+
+  applyRealtimeState(response.data);
+  closeIncidentModal();
+  showToast('Incident resolved');
 }
 
 // ─── LOCATION SEARCH ───
@@ -2565,11 +2865,17 @@ window.addEventListener('beforeunload', () => {
 
 document.addEventListener('click', event => {
   const pickerEl = document.getElementById('location-picker');
-  if (!pickerEl) {
-    return;
-  }
-  if (!pickerEl.contains(event.target)) {
+  if (pickerEl && !pickerEl.contains(event.target)) {
     closeLocationSearch();
+  }
+
+  // Close incident modal when clicking outside the content
+  const modalEl = document.getElementById('incident-modal');
+  if (modalEl && modalEl.classList.contains('visible')) {
+    const contentEl = modalEl.querySelector('.incident-modal-content');
+    if (contentEl && !contentEl.contains(event.target)) {
+      closeIncidentModal();
+    }
   }
 });
 
