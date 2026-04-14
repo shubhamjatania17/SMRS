@@ -366,25 +366,78 @@ body::before {
   gap: 28px;
 }
 
-.location-pill {
+.location-picker {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+.location-picker-head {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.location-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.location-search-input {
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border2);
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 12px;
-  color: var(--text2);
-  width: 100%;
-  max-width: 400px;
-  cursor: pointer;
-  transition: border-color 0.15s;
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font-body);
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.location-pill:hover { border-color: var(--border2); }
-.location-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-.location-text { flex: 1; font-family: var(--font-mono); font-size: 11px; }
-.location-change { font-size: 10px; color: var(--red); text-decoration: underline; cursor: pointer; }
+.location-search-input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-bg);
+}
+.location-search-input::placeholder { color: var(--text3); }
+.location-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 120;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  display: none;
+}
+.location-results.open { display: block; }
+.location-option {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 9px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+.location-option:hover,
+.location-option.active {
+  background: var(--surface2);
+}
+.location-option-empty {
+  padding: 10px;
+  color: var(--text3);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
 
 /* SOS RING SYSTEM */
 .sos-zone {
@@ -1410,10 +1463,22 @@ body::before {
   <div class="page active" id="page-sos">
     <div class="sos-page">
 
-      <div class="location-pill">
-        <div class="location-dot"></div>
-        <span class="location-text" id="location-text">Set your current location</span>
-        <span class="location-change" onclick="changeLocation()">Change</span>
+      <div class="location-picker" id="location-picker">
+        <div class="location-picker-head">
+          <div class="location-dot"></div>
+          <span>Your Location</span>
+        </div>
+        <input
+          type="text"
+          id="location-search-input"
+          class="location-search-input"
+          placeholder="Search room number or room name"
+          autocomplete="off"
+          onfocus="openLocationSearch()"
+          oninput="handleLocationSearchInput()"
+          onkeydown="handleLocationSearchKeydown(event)"
+        />
+        <div id="location-search-results" class="location-results"></div>
       </div>
 
       <!-- BIG SOS BUTTON -->
@@ -1789,11 +1854,13 @@ let alertBaseTime = Date.now();
 let currentAlertId = null;
 let toastTimerId = null;
 let currentMapFloorKey = 'g';
+let selectedLocation = '';
+let visibleLocationResults = [];
+let activeLocationResultIndex = -1;
 
 const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
 const CLIENT_STORAGE_KEY = 'smrs_client_id';
 let clientConfig = null;
-let locationIndex = 0;
 
 const DEFAULT_FLOOR_PLANS = [
   { key: 'lg', shortLabel: 'LG', label: 'Lower Ground', src: '/assets/floors/floor_lg_dark.svg' },
@@ -1937,12 +2004,15 @@ function applyClientConfig(config) {
 
   const locations = getConfiguredLocations();
   if (locations.length > 0) {
-    const currentLocationEl = document.getElementById('location-text');
-    if (currentLocationEl && (currentLocationEl.textContent || '').toLowerCase().includes('set your current location')) {
-      locationIndex = 0;
-      currentLocationEl.textContent = locations[0];
+    if (!selectedLocation || !locations.includes(selectedLocation)) {
+      setSelectedLocation(locations[0], false);
     }
+    renderLocationSearchResults('');
+    return;
   }
+
+  setSelectedLocation('', false);
+  renderLocationSearchResults('');
 }
 
 function getConfiguredLocations() {
@@ -2434,8 +2504,8 @@ function showPage(id) {
 
 // ─── SOS ───
 async function triggerSOS() {
-  const loc = document.getElementById('location-text').textContent.trim();
-  if (!loc || loc.toLowerCase().includes('set your current location')) {
+  const loc = getSelectedLocation();
+  if (!loc) {
     showToast('Please set your location first');
     return;
   }
@@ -2503,24 +2573,146 @@ async function resolveAlert() {
   showPage(isStaffDashboardOnlyRole(selectedRole) ? 'staff' : 'sos');
 }
 
-// ─── LOCATION PICKER ───
-function changeLocation() {
-  const configuredLocations = getConfiguredLocations();
+// ─── LOCATION SEARCH ───
+function getSelectedLocation() {
+  return String(selectedLocation || '').trim();
+}
 
-  if (configuredLocations.length === 0) {
-    showToast('No locations configured for this client');
+function setSelectedLocation(location, announce = true) {
+  selectedLocation = String(location || '').trim();
+  const inputEl = document.getElementById('location-search-input');
+  if (inputEl) {
+    inputEl.value = selectedLocation;
+  }
+  if (announce && selectedLocation) {
+    showToast('Location selected');
+  }
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function closeLocationSearch() {
+  const resultsEl = document.getElementById('location-search-results');
+  if (resultsEl) {
+    resultsEl.classList.remove('open');
+  }
+  activeLocationResultIndex = -1;
+}
+
+function openLocationSearch() {
+  const inputEl = document.getElementById('location-search-input');
+  activeLocationResultIndex = 0;
+  renderLocationSearchResults(inputEl ? inputEl.value : '');
+}
+
+function renderLocationSearchResults(query) {
+  const resultsEl = document.getElementById('location-search-results');
+  if (!resultsEl) {
     return;
   }
 
-  const currentLocationEl = document.getElementById('location-text');
-  const currentLocation = currentLocationEl ? String(currentLocationEl.textContent || '').trim() : '';
-  const currentIndex = configuredLocations.indexOf(currentLocation);
-  locationIndex = currentIndex >= 0 ? currentIndex : locationIndex;
-  locationIndex = (locationIndex + 1) % configuredLocations.length;
-  if (currentLocationEl) {
-    currentLocationEl.textContent = configuredLocations[locationIndex];
+  const configuredLocations = getConfiguredLocations();
+  const normalizedQuery = String(query || '').trim().toLowerCase();
+
+  if (configuredLocations.length === 0) {
+    resultsEl.innerHTML = '<div class="location-option-empty">No rooms configured for this client.</div>';
+    resultsEl.classList.add('open');
+    visibleLocationResults = [];
+    activeLocationResultIndex = -1;
+    return;
   }
-  showToast('Location updated');
+
+  visibleLocationResults = configuredLocations.filter(location =>
+    String(location || '').toLowerCase().includes(normalizedQuery)
+  );
+
+  if (visibleLocationResults.length === 0) {
+    resultsEl.innerHTML = '<div class="location-option-empty">No matching room found.</div>';
+    resultsEl.classList.add('open');
+    activeLocationResultIndex = -1;
+    return;
+  }
+
+  activeLocationResultIndex = activeLocationResultIndex < 0
+    ? 0
+    : Math.min(activeLocationResultIndex, visibleLocationResults.length - 1);
+  resultsEl.innerHTML = visibleLocationResults
+    .map((location, index) =>
+      '<button type="button" class="location-option' +
+      (index === activeLocationResultIndex ? ' active' : '') +
+      '" data-location-index="' + index + '" onclick="selectLocationOption(' + index + ')">' +
+      escapeHtml(location) +
+      '</button>'
+    )
+    .join('');
+
+  resultsEl.classList.add('open');
+}
+
+function selectLocationOption(index) {
+  const location = visibleLocationResults[index];
+  if (!location) {
+    return;
+  }
+  setSelectedLocation(location, true);
+  closeLocationSearch();
+}
+
+function handleLocationSearchInput() {
+  const inputEl = document.getElementById('location-search-input');
+  const typed = inputEl ? String(inputEl.value || '').trim() : '';
+  if (typed.toLowerCase() !== getSelectedLocation().toLowerCase()) {
+    selectedLocation = '';
+  }
+  activeLocationResultIndex = 0;
+  renderLocationSearchResults(typed);
+}
+
+function handleLocationSearchKeydown(event) {
+  if (!event) {
+    return;
+  }
+
+  if (!Array.isArray(visibleLocationResults) || visibleLocationResults.length === 0) {
+    if (event.key === 'Escape') {
+      closeLocationSearch();
+    }
+    return;
+  }
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    activeLocationResultIndex = (activeLocationResultIndex + 1) % visibleLocationResults.length;
+    renderLocationSearchResults(event.target ? event.target.value : '');
+    return;
+  }
+
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    activeLocationResultIndex = activeLocationResultIndex <= 0
+      ? visibleLocationResults.length - 1
+      : activeLocationResultIndex - 1;
+    renderLocationSearchResults(event.target ? event.target.value : '');
+    return;
+  }
+
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    const index = activeLocationResultIndex >= 0 ? activeLocationResultIndex : 0;
+    selectLocationOption(index);
+    return;
+  }
+
+  if (event.key === 'Escape') {
+    closeLocationSearch();
+  }
 }
 
 // ─── GUIDES FILTER ───
@@ -2556,6 +2748,16 @@ function showToast(msg) {
 window.addEventListener('beforeunload', () => {
   if (streamConnection) {
     streamConnection.close();
+  }
+});
+
+document.addEventListener('click', event => {
+  const pickerEl = document.getElementById('location-picker');
+  if (!pickerEl) {
+    return;
+  }
+  if (!pickerEl.contains(event.target)) {
+    closeLocationSearch();
   }
 });
 

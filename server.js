@@ -40,50 +40,159 @@ const FLOOR_LABELS = {
   '8': 'Floor 8'
 };
 
-// Coordinates are derived from room labels in each floor SVG (360x534 viewBox).
-const FLOOR_RESOURCE_ROOMS = {
-  lg: [
-    { type: 'AED Unit', icon: '❤️', room: 'Electrical Panel Room', anchorLeft: '36.8%', anchorTop: '91.7%', offsetLeft: '3.0%', offsetTop: '-7.6%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'Maintenance Room', anchorLeft: '80.6%', anchorTop: '91.7%', offsetLeft: '-4.2%', offsetTop: '-7.6%' }
-  ],
-  g: [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR G3', anchorLeft: '83.9%', anchorTop: '30.7%', offsetLeft: '-4.4%', offsetTop: '7.0%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR G1', anchorLeft: '7.2%', anchorTop: '59.3%', offsetLeft: '6.4%', offsetTop: '1.0%' },
-    { type: 'Medical Room', icon: '🏥', room: 'Conference Room', anchorLeft: '52.5%', anchorTop: '63.5%', offsetLeft: '1.6%', offsetTop: '-2.8%' }
-  ],
-  '1': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 104', anchorLeft: '84.2%', anchorTop: '33.1%', offsetLeft: '-5.4%', offsetTop: '6.8%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 101', anchorLeft: '6.9%', anchorTop: '46.0%', offsetLeft: '7.2%', offsetTop: '1.4%' }
-  ],
-  '2': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 204', anchorLeft: '83.6%', anchorTop: '61.0%', offsetLeft: '-5.8%', offsetTop: '0.0%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 201', anchorLeft: '26.9%', anchorTop: '92.8%', offsetLeft: '3.8%', offsetTop: '-8.4%' }
-  ],
-  '3': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 306', anchorLeft: '83.9%', anchorTop: '65.0%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 303', anchorLeft: '6.7%', anchorTop: '26.9%', offsetLeft: '7.4%', offsetTop: '6.2%' }
-  ],
-  '4': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 404', anchorLeft: '83.9%', anchorTop: '65.5%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CL 402', anchorLeft: '6.7%', anchorTop: '53.2%', offsetLeft: '7.2%', offsetTop: '0.6%' }
-  ],
-  '5': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 505', anchorLeft: '83.9%', anchorTop: '65.4%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 503', anchorLeft: '6.4%', anchorTop: '27.1%', offsetLeft: '7.6%', offsetTop: '6.0%' }
-  ],
-  '6': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CR 605', anchorLeft: '83.9%', anchorTop: '67.0%', offsetLeft: '-5.6%', offsetTop: '-0.8%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'E. CR 604', anchorLeft: '6.7%', anchorTop: '26.9%', offsetLeft: '7.4%', offsetTop: '6.2%' }
-  ],
-  '7': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CL 704', anchorLeft: '83.9%', anchorTop: '68.1%', offsetLeft: '-5.8%', offsetTop: '-0.4%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'Library', anchorLeft: '8.6%', anchorTop: '32.0%', offsetLeft: '5.8%', offsetTop: '5.0%' }
-  ],
-  '8': [
-    { type: 'AED Unit', icon: '❤️', room: 'E. CL 803', anchorLeft: '83.9%', anchorTop: '53.4%', offsetLeft: '-5.8%', offsetTop: '0.4%' },
-    { type: 'First Aid Kit', icon: '🩹', room: 'Pneumatic Lab', anchorLeft: '5.8%', anchorTop: '33.5%', offsetLeft: '6.4%', offsetTop: '4.8%' }
-  ]
+const FLOOR_PLAN_FILES = {
+  lg: 'floor_lg_dark.svg',
+  g: 'floor_g_dark.svg',
+  '1': 'floor_1_dark.svg',
+  '2': 'floor_2_dark.svg',
+  '3': 'floor_3_dark.svg',
+  '4': 'floor_4_dark.svg',
+  '5': 'floor_5_dark.svg',
+  '6': 'floor_6_dark.svg',
+  '7': 'floor_7_dark.svg',
+  '8': 'floor_8_dark.svg'
 };
+
+const ROOM_TYPE_OVERRIDES = {
+  'electrical panel room': { type: 'AED Unit', icon: '❤️' },
+  'maintenance room': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr g3': { type: 'AED Unit', icon: '❤️' },
+  'e. cr g1': { type: 'First Aid Kit', icon: '🩹' },
+  'conference room': { type: 'Medical Room', icon: '🏥' },
+  'e. cr 104': { type: 'AED Unit', icon: '❤️' },
+  'e. cr 101': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr 204': { type: 'AED Unit', icon: '❤️' },
+  'e. cr 201': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr 306': { type: 'AED Unit', icon: '❤️' },
+  'e. cr 303': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr 404': { type: 'AED Unit', icon: '❤️' },
+  'e. cl 402': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr 505': { type: 'AED Unit', icon: '❤️' },
+  'e. cr 503': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cr 605': { type: 'AED Unit', icon: '❤️' },
+  'e. cr 604': { type: 'First Aid Kit', icon: '🩹' },
+  'e. cl 704': { type: 'AED Unit', icon: '❤️' },
+  library: { type: 'First Aid Kit', icon: '🩹' },
+  'e. cl 803': { type: 'AED Unit', icon: '❤️' },
+  'pneumatic lab': { type: 'First Aid Kit', icon: '🩹' }
+};
+
+const ROOM_LABEL_EXCLUDE_PATTERNS = [
+  /^floor\b/i,
+  /^ground floor\b/i,
+  /^lift$/i,
+  /entrance/i,
+  /^staircase\b/i,
+  /^exit\b/i,
+  /fire fighting/i,
+  /^na$/i
+];
+
+function decodeSvgText(value) {
+  return String(value || '')
+    .replace(/&#10;|&#x0A;|\n/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isRoomLabel(label) {
+  if (!label) {
+    return false;
+  }
+  return !ROOM_LABEL_EXCLUDE_PATTERNS.some(pattern => pattern.test(label));
+}
+
+function getRoomTypeMeta(roomName) {
+  const normalized = String(roomName || '').trim().toLowerCase();
+  return ROOM_TYPE_OVERRIDES[normalized] || { type: 'Mapped Room', icon: '📍' };
+}
+
+function extractSvgRoomLabels(svgContent) {
+  const labels = [];
+  const textBlocks = svgContent.match(/<text[^>]*>[\s\S]*?<\/text>/g) || [];
+
+  textBlocks.forEach(textBlock => {
+    const spanMatches = [...textBlock.matchAll(/<tspan[^>]*x=\"([^\"]+)\"[^>]*y=\"([^\"]+)\"[^>]*>([\s\S]*?)<\/tspan>/g)];
+    if (spanMatches.length === 0) {
+      return;
+    }
+
+    const firstX = parseFloat(spanMatches[0][1]);
+    const firstY = parseFloat(spanMatches[0][2]);
+    if (!Number.isFinite(firstX) || !Number.isFinite(firstY)) {
+      return;
+    }
+
+    const label = decodeSvgText(
+      spanMatches
+        .map(match => decodeSvgText(match[3]))
+        .filter(Boolean)
+        .join(' ')
+    );
+
+    if (!isRoomLabel(label)) {
+      return;
+    }
+
+    labels.push({
+      room: label,
+      x: firstX,
+      y: firstY
+    });
+  });
+
+  return labels;
+}
+
+// Coordinates are derived from all room labels in each floor SVG (360x534 viewBox).
+function buildFloorResourceRooms() {
+  const roomsByFloor = {};
+
+  FLOOR_SEQUENCE.forEach(floorKey => {
+    const fileName = FLOOR_PLAN_FILES[floorKey];
+    const floorSvgPath = fileName ? path.join(ROOT_DIR, 'assets', 'floors', fileName) : '';
+
+    if (!floorSvgPath || !fs.existsSync(floorSvgPath)) {
+      roomsByFloor[floorKey] = [];
+      return;
+    }
+
+    const svgContent = fs.readFileSync(floorSvgPath, 'utf8');
+    const labels = extractSvgRoomLabels(svgContent);
+    const dedupe = new Set();
+
+    roomsByFloor[floorKey] = labels
+      .filter(label => {
+        const key = label.room.toLowerCase();
+        if (dedupe.has(key)) {
+          return false;
+        }
+        dedupe.add(key);
+        return true;
+      })
+      .map(label => {
+        const roomMeta = getRoomTypeMeta(label.room);
+        return {
+          type: roomMeta.type,
+          icon: roomMeta.icon,
+          room: label.room,
+          anchorLeft: `${((label.x / 360) * 100).toFixed(1)}%`,
+          anchorTop: `${((label.y / 534) * 100).toFixed(1)}%`,
+          offsetLeft: '0.0%',
+          offsetTop: '0.0%'
+        };
+      });
+  });
+
+  return roomsByFloor;
+}
+
+const FLOOR_RESOURCE_ROOMS = buildFloorResourceRooms();
 
 function shiftPercent(value, delta) {
   return `${(parseFloat(value) + parseFloat(delta)).toFixed(1)}%`;
@@ -243,13 +352,30 @@ function normalizeMapConfig(mapConfig) {
   }
 
   const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
+  const defaultResources = buildDefaultMapResources();
+  const seenLocationLabels = new Set(
+    resources
+      .map(resource => String(resource.locationLabel || resource.distance || '').trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const mergedResources = [...resources];
+
+  defaultResources.forEach(resource => {
+    const key = String(resource.locationLabel || resource.distance || '').trim().toLowerCase();
+    if (!key || seenLocationLabels.has(key)) {
+      return;
+    }
+    seenLocationLabels.add(key);
+    mergedResources.push(resource);
+  });
+
   const locations = Array.isArray(mapConfig.locations) && mapConfig.locations.length > 0
     ? mapConfig.locations
-    : resources.map(resource => String(resource.locationLabel || resource.name || resource.distance || '').trim()).filter(Boolean);
+    : mergedResources.map(resource => String(resource.locationLabel || resource.name || resource.distance || '').trim()).filter(Boolean);
   return {
     ...mapConfig,
     locations,
-    resources: resources.map(resource => ({
+    resources: mergedResources.map(resource => ({
       ...resource,
       floorKey: inferResourceFloorKey(resource)
     }))
