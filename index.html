@@ -931,8 +931,8 @@ body::before {
   aspect-ratio: 360 / 534;
   min-height: 320px;
   max-height: 74vh;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: #1f070b;
+  border: 1px solid rgba(255, 69, 95, 0.45);
   border-radius: 16px;
   position: relative;
   overflow: hidden;
@@ -943,8 +943,8 @@ body::before {
   inset: 0;
   z-index: 1;
   background:
-    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.08), transparent 58%),
-    linear-gradient(135deg, rgba(255, 67, 67, 0.08), rgba(0, 0, 0, 0) 55%);
+    radial-gradient(circle at 50% 45%, rgba(255, 105, 125, 0.38), transparent 62%),
+    linear-gradient(135deg, rgba(255, 49, 79, 0.44), rgba(110, 5, 20, 0.28) 58%);
 }
 
 .map-floor-plan-layer::after {
@@ -952,7 +952,7 @@ body::before {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(8, 10, 16, 0.08), rgba(8, 10, 16, 0.32));
+  background: linear-gradient(180deg, rgba(30, 4, 10, 0.06), rgba(30, 4, 10, 0.3));
 }
 
 .map-floor-plan-layer::before {
@@ -961,8 +961,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 50%, rgba(255, 43, 82, 0.12), transparent 62%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 34%, transparent 66%, rgba(255, 255, 255, 0.04));
+    radial-gradient(circle at 50% 50%, rgba(255, 44, 74, 0.34), transparent 62%),
+    linear-gradient(90deg, rgba(255, 100, 120, 0.16), transparent 34%, transparent 66%, rgba(255, 100, 120, 0.16));
   mix-blend-mode: screen;
 }
 
@@ -971,8 +971,8 @@ body::before {
   height: 100%;
   object-fit: contain;
   display: block;
-  opacity: 0.24;
-  filter: grayscale(1) brightness(0.72) contrast(1.42) sepia(0.9) hue-rotate(326deg) saturate(1.4);
+  opacity: 0.56;
+  filter: grayscale(0.08) brightness(1.02) contrast(1.28) sepia(0.94) hue-rotate(322deg) saturate(3.1);
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -980,10 +980,10 @@ body::before {
 .map-grid-bg {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    linear-gradient(rgba(255, 70, 94, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 70, 94, 0.28) 1px, transparent 1px);
   background-size: 44px 44px;
-  opacity: 0.25;
+  opacity: 0.52;
   z-index: 2;
 }
 
@@ -1019,13 +1019,13 @@ body::before {
 
 .m-building {
   position: absolute;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
+  background: rgba(130, 16, 34, 0.56);
+  border: 1px solid rgba(255, 86, 111, 0.72);
   border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   font-size: 8px;
   font-family: var(--font-mono);
-  color: var(--text3);
+  color: #ffd8df;
   letter-spacing: 0.04em;
   text-align: center;
   line-height: 1.4;
@@ -1496,175 +1496,14 @@ body::before {
 
       <!-- Quick actions -->
       <div class="quick-grid">
-        <div class="quick-card urgent" onclick="showPage('guides')">
+        <div class="quick-card urgent" onclick="showPage('map')">
           <div class="quick-card-icon">📋</div>
-          <div class="quick-card-title">First Aid Guide</div>
-          <div class="quick-card-desc">Step-by-step emergency instructions</div>
+          <div class="quick-card-title">Emergency Rooms</div>
+          <div class="quick-card-desc">Find the nearest room for immediate help</div>
         </div>
         <div class="quick-card" onclick="showPage('map')">
           <div class="quick-card-icon">🗺️</div>
           <div class="quick-card-title">Find Medical Room</div>
-          <div class="quick-card-desc">Nearest AED & first aid kits</div>
-        </div>
-        <div class="quick-card" onclick="showPage('map')">
-          <div class="quick-card-icon">❤️</div>
-          <div class="quick-card-title">Nearest AED</div>
-          <div class="quick-card-desc" id="quick-nearest-aed">Loading from live map data...</div>
-        </div>
-        <div class="quick-card" onclick="showPage('alert')">
-          <div class="quick-card-icon">👁️</div>
-          <div class="quick-card-title">Active Alert</div>
-          <div class="quick-card-desc">View current incident status</div>
-        </div>
-      </div>
-
-      <!-- Emergency contacts -->
-      <div class="contacts-strip">
-        <div class="contacts-label">Emergency Contacts</div>
-        <div id="contacts-list"></div>
-      </div>
-
-    </div>
-  </div><!-- /page-sos -->
-  <div class="page" id="page-alert">
-    <div class="alert-page">
-
-        <div id="map-buildings-layer"></div>
-        <div id="map-you-layer"></div>
-        <div id="map-incident-pin-layer"></div>
-        <div id="map-resource-markers-layer"></div>
-        <div class="map-incident-label" id="map-incident-label">No active incident</div>
-        </div>
-        <div class="dispatch-card">
-          <div class="d-icon">📞</div>
-      <div class="resource-list" id="medical-resource-list"></div>
-      <p class="page-sub">Tap any emergency to see exactly what to do. Written for people with zero medical training.</p>
-
-      <div class="guide-search">
-        <span style="font-size:16px;color:var(--text3)">🔍</span>
-        <input type="text" placeholder="Search emergencies..." oninput="filterGuides(this.value)"/>
-      </div>
-
-      <div class="filter-chips">
-        <div class="f-chip active" onclick="filterCat(this,'all')">All</div>
-        <div class="f-chip" onclick="filterCat(this,'critical')">Critical</div>
-        <div class="f-chip" onclick="filterCat(this,'moderate')">Moderate</div>
-        <div class="f-chip" onclick="filterCat(this,'stable')">Stable</div>
-      </div>
-
-      <div class="guide-list" id="guide-list">
-
-        <!-- FAINTING -->
-        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">😵</div>
-            <div class="g-info">
-              <div class="g-title">Fainting / Unconscious</div>
-              <div class="g-desc">Student collapsed, unresponsive or dizzy</div>
-            </div>
-            <div class="g-badge gb-crit">CRITICAL</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Press SOS immediately</strong> — even if they seem fine. Always alert medical.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Clear the crowd.</strong> Ask everyone except 1 helper to leave. Do NOT let people crowd around.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Recovery position:</strong> Gently roll them on their side. Tilt chin slightly up. This keeps airway open.</div></div>
-            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Check if they're <strong>breathing</strong>. Watch the chest. If not breathing, start CPR.</div></div>
-            <div class="g-step"><div class="g-step-n">5</div><div class="g-step-text">Stay with them and <strong>talk calmly</strong>. Send someone to guide medical staff to your exact room.</div></div>
-            <div class="do-not-box">
-              <div class="do-not-label">🚫 Do NOT</div>
-              <div class="do-not-text">Throw water on their face · Slap or shake them · Lift them up immediately · Give food or water · Let 10 people crowd them</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CARDIAC ARREST -->
-        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">❤️</div>
-            <div class="g-info">
-              <div class="g-title">Cardiac Arrest / No Pulse</div>
-              <div class="g-desc">Not breathing, no pulse, unresponsive</div>
-            </div>
-            <div class="g-badge gb-crit">CRITICAL</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Call SOS NOW</strong> and shout for someone to fetch the nearest AED (Block A Lobby).</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Chest compressions:</strong> 30 hard, fast pushes to center of chest. Use both hands, arms straight.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Rescue breaths:</strong> Tilt head back, lift chin, seal over mouth, give 2 breaths.</div></div>
-            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Repeat <strong>30 compressions → 2 breaths</strong> until AED arrives or they regain consciousness.</div></div>
-            <div class="do-not-box">
-              <div class="do-not-label">🚫 Do NOT</div>
-              <div class="do-not-text">Stop CPR until trained help takes over · Leave them alone · Wait to see if they recover</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEIZURE -->
-        <div class="guide-card" data-cat="critical" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">⚡</div>
-            <div class="g-info">
-              <div class="g-title">Seizure / Convulsions</div>
-              <div class="g-desc">Shaking, jerking, loss of control</div>
-            </div>
-            <div class="g-badge gb-crit">CRITICAL</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Time it.</strong> If seizure lasts over 5 minutes, it's a medical emergency — call ambulance.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text"><strong>Protect their head.</strong> Put a folded jacket or bag under their head. Move hard objects away.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text">When shaking stops, <strong>gently roll to recovery position</strong> and keep airway clear.</div></div>
-            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Stay with them. They may be confused after — talk calmly, reassure them.</div></div>
-            <div class="do-not-box">
-              <div class="do-not-label">🚫 Do NOT</div>
-              <div class="do-not-text">Hold them down · Put anything in their mouth · Give water during the seizure</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ALLERGIC REACTION -->
-        <div class="guide-card" data-cat="moderate" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">🤧</div>
-            <div class="g-info">
-              <div class="g-title">Severe Allergic Reaction</div>
-              <div class="g-desc">Swelling, hives, breathing difficulty</div>
-            </div>
-            <div class="g-badge gb-mod">MODERATE</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text">Ask if they carry an <strong>EpiPen</strong>. Help them use it if needed.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">If breathing is hard, have them <strong>sit upright</strong>. If dizzy, have them lie down with legs raised.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Do not give antihistamines</strong> in place of epinephrine — they work too slowly for severe reactions.</div></div>
-          </div>
-        </div>
-
-        <!-- CUT / BLEEDING -->
-        <div class="guide-card" data-cat="moderate" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">🩸</div>
-            <div class="g-info">
-              <div class="g-title">Heavy Bleeding / Deep Cut</div>
-              <div class="g-desc">Wound not stopping, significant blood loss</div>
-            </div>
-            <div class="g-badge gb-mod">MODERATE</div>
-          </div>
-          <div class="guide-steps-panel">
-            <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Apply direct pressure</strong> with a clean cloth or clothing. Press hard and don't release.</div></div>
-            <div class="g-step"><div class="g-step-n">2</div><div class="g-step-text">If cloth soaks through, add more on top — <strong>don't remove</strong> the original.</div></div>
-            <div class="g-step"><div class="g-step-n">3</div><div class="g-step-text"><strong>Elevate</strong> the injured part above heart level if possible.</div></div>
-            <div class="g-step"><div class="g-step-n">4</div><div class="g-step-text">Get to the <strong>medical room</strong> or wait for staff if bleeding is severe.</div></div>
-          </div>
-        </div>
-
-        <!-- FRACTURE -->
-        <div class="guide-card" data-cat="stable" onclick="this.classList.toggle('expanded')">
-          <div class="guide-card-top">
-            <div class="g-emoji">🦴</div>
-            <div class="g-info">
-              <div class="g-title">Fracture / Bone Injury</div>
-              <div class="g-desc">Suspected broken bone, deformity</div>
-            </div>
-            <div class="g-badge gb-low">STABLE</div>
           </div>
           <div class="guide-steps-panel">
             <div class="g-step"><div class="g-step-n">1</div><div class="g-step-text"><strong>Do not move the limb.</strong> Keep the student still and calm.</div></div>
@@ -1787,10 +1626,6 @@ body::before {
       <div class="nav-icon">⚡</div>
       <div class="nav-label">Alert</div>
     </button>
-    <button class="nav-item" onclick="showPage('guides')" id="nav-guides">
-      <div class="nav-icon">📋</div>
-      <div class="nav-label">Guides</div>
-    </button>
     <button class="nav-item" onclick="showPage('map')" id="nav-map">
       <div class="nav-icon">🗺️</div>
       <div class="nav-label">Map</div>
@@ -1879,7 +1714,6 @@ const dom = {
   pages: [],
   navItems: [],
   roleButtons: [],
-  guideCards: [],
   filterChips: []
 };
 
@@ -1887,7 +1721,6 @@ function initDomCache() {
   dom.pages = Array.from(document.querySelectorAll('.page'));
   dom.navItems = Array.from(document.querySelectorAll('.nav-item'));
   dom.roleButtons = Array.from(document.querySelectorAll('.role-btn'));
-  dom.guideCards = Array.from(document.querySelectorAll('.guide-card'));
   dom.filterChips = Array.from(document.querySelectorAll('.f-chip'));
 }
 
@@ -2268,7 +2101,7 @@ function updateStaffDashboard(activeAlert, history, lastUpdatedAt) {
 
 function applyRoleAccessControls() {
   const isStaffOnly = isStaffDashboardOnlyRole(selectedRole);
-  const navIds = ['sos', 'alert', 'guides', 'map', 'staff'];
+  const navIds = ['sos', 'alert', 'map', 'staff'];
 
   navIds.forEach(id => {
     const nav = document.getElementById('nav-' + id);
@@ -2713,27 +2546,6 @@ function handleLocationSearchKeydown(event) {
   if (event.key === 'Escape') {
     closeLocationSearch();
   }
-}
-
-// ─── GUIDES FILTER ───
-let activeCat = 'all';
-
-function filterGuides(query) {
-  const q = query.toLowerCase();
-  dom.guideCards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    const catMatch = activeCat === 'all' || card.dataset.cat === activeCat;
-    card.style.display = (text.includes(q) && catMatch) ? '' : 'none';
-  });
-}
-
-function filterCat(el, cat) {
-  dom.filterChips.forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  activeCat = cat;
-  dom.guideCards.forEach(card => {
-    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
-  });
 }
 
 // ─── TOAST ───

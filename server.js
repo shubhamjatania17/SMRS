@@ -53,29 +53,37 @@ const FLOOR_PLAN_FILES = {
   '8': 'floor_8_dark.svg'
 };
 
-const ROOM_TYPE_OVERRIDES = {
-  'electrical panel room': { type: 'AED Unit', icon: '❤️' },
-  'maintenance room': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr g3': { type: 'AED Unit', icon: '❤️' },
-  'e. cr g1': { type: 'First Aid Kit', icon: '🩹' },
-  'conference room': { type: 'Medical Room', icon: '🏥' },
-  'e. cr 104': { type: 'AED Unit', icon: '❤️' },
-  'e. cr 101': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr 204': { type: 'AED Unit', icon: '❤️' },
-  'e. cr 201': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr 306': { type: 'AED Unit', icon: '❤️' },
-  'e. cr 303': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr 404': { type: 'AED Unit', icon: '❤️' },
-  'e. cl 402': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr 505': { type: 'AED Unit', icon: '❤️' },
-  'e. cr 503': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cr 605': { type: 'AED Unit', icon: '❤️' },
-  'e. cr 604': { type: 'First Aid Kit', icon: '🩹' },
-  'e. cl 704': { type: 'AED Unit', icon: '❤️' },
-  library: { type: 'First Aid Kit', icon: '🩹' },
-  'e. cl 803': { type: 'AED Unit', icon: '❤️' },
-  'pneumatic lab': { type: 'First Aid Kit', icon: '🩹' }
-};
+const ROOM_TYPE_OVERRIDES = {};
+
+const GROUND_FLOOR_SPECIAL_RESOURCES = [
+  {
+    type: 'Medical Room',
+    icon: '🏥',
+    room: 'Admin Department',
+    anchorLeft: '34.4%',
+    anchorTop: '63.5%',
+    offsetLeft: '2.0%',
+    offsetTop: '-1.2%'
+  },
+  {
+    type: 'AED Unit',
+    icon: '❤️',
+    room: 'Admin Department',
+    anchorLeft: '34.4%',
+    anchorTop: '63.5%',
+    offsetLeft: '-2.0%',
+    offsetTop: '1.2%'
+  },
+  {
+    type: 'First Aid Kit',
+    icon: '🩹',
+    room: 'Main Entrance Desk',
+    anchorLeft: '83.1%',
+    anchorTop: '18.0%',
+    offsetLeft: '0.0%',
+    offsetTop: '0.0%'
+  }
+];
 
 const ROOM_LABEL_EXCLUDE_PATTERNS = [
   /^floor\b/i,
@@ -168,6 +176,13 @@ function buildFloorResourceRooms() {
 
     roomsByFloor[floorKey] = labels
       .filter(label => {
+        if (floorKey !== 'g') {
+          return true;
+        }
+        const roomName = String(label.room || '').trim().toLowerCase();
+        return roomName !== 'admin department';
+      })
+      .filter(label => {
         const key = label.room.toLowerCase();
         if (dedupe.has(key)) {
           return false;
@@ -187,6 +202,10 @@ function buildFloorResourceRooms() {
           offsetTop: '0.0%'
         };
       });
+
+    if (floorKey === 'g') {
+      roomsByFloor[floorKey] = roomsByFloor[floorKey].concat(GROUND_FLOOR_SPECIAL_RESOURCES);
+    }
   });
 
   return roomsByFloor;
@@ -214,17 +233,19 @@ function buildDefaultMapResources() {
 
     roomPins.forEach(pin => {
       const position = resolveRoomPinPosition(pin);
+      const resourceName = pin.type === 'Mapped Room' ? pin.room : `${pin.type} — ${pin.room}`;
+      const markerTitle = pin.type === 'Mapped Room' ? pin.room : `${pin.type} · ${pin.room}`;
 
       resources.push({
         icon: pin.icon,
-        name: `${pin.type} — ${pin.room}`,
+        name: resourceName,
         locationLabel: `${floorLabel} · ${pin.room}`,
         floorKey,
         distance: `${floorLabel} · ${pin.room}`,
         status: 'AVAILABLE',
         left: position.left,
         top: position.top,
-        markerTitle: `${pin.type} · ${pin.room}`
+        markerTitle
       });
     });
   });
@@ -353,25 +374,31 @@ function normalizeMapConfig(mapConfig) {
 
   const resources = Array.isArray(mapConfig.resources) ? mapConfig.resources : [];
   const defaultResources = buildDefaultMapResources();
-  const seenLocationLabels = new Set(
-    resources
-      .map(resource => String(resource.locationLabel || resource.distance || '').trim().toLowerCase())
-      .filter(Boolean)
+  const defaultByLocation = new Map(
+    defaultResources
+      .map(resource => [String(resource.locationLabel || resource.distance || '').trim().toLowerCase(), resource])
+      .filter(([key]) => Boolean(key))
   );
-  const mergedResources = [...resources];
 
-  defaultResources.forEach(resource => {
+  const customResources = [];
+  const seenCustomLocations = new Set();
+
+  resources.forEach(resource => {
     const key = String(resource.locationLabel || resource.distance || '').trim().toLowerCase();
-    if (!key || seenLocationLabels.has(key)) {
+    if (!key || defaultByLocation.has(key) || seenCustomLocations.has(key)) {
       return;
     }
-    seenLocationLabels.add(key);
-    mergedResources.push(resource);
+    seenCustomLocations.add(key);
+    customResources.push(resource);
   });
 
-  const locations = Array.isArray(mapConfig.locations) && mapConfig.locations.length > 0
-    ? mapConfig.locations
-    : mergedResources.map(resource => String(resource.locationLabel || resource.name || resource.distance || '').trim()).filter(Boolean);
+  const mergedResources = [...defaultResources, ...customResources];
+  const locations = [...new Set(
+    mergedResources
+      .map(resource => String(resource.locationLabel || resource.name || resource.distance || '').trim())
+      .filter(Boolean)
+  )];
+
   return {
     ...mapConfig,
     locations,
