@@ -2154,6 +2154,8 @@ let activeLocationResultIndex = -1;
 
 const API_BASE = window.location.protocol === 'file:' ? 'https://medresponse.onrender.com' : '';
 const CLIENT_STORAGE_KEY = 'smrs_client_id';
+const DEFAULT_SHARED_CLIENT_ID = 'default';
+const DASHBOARD_CACHE_KEY_PREFIX = 'smrs_dashboard_cache_';
 let clientConfig = null;
 
 function setAppHeightVar() {
@@ -2205,10 +2207,6 @@ function isStaffDashboardOnlyRole(role) {
   return ['staff', 'admin'].includes(String(role || '').toLowerCase());
 }
 
-function buildClientId() {
-  return 'client-' + Math.random().toString(36).slice(2, 10);
-}
-
 function resolveClientId() {
   const params = new URLSearchParams(window.location.search);
   const fromUrl = String(params.get('client') || params.get('clientId') || '').trim();
@@ -2219,12 +2217,16 @@ function resolveClientId() {
 
   const fromStorage = String(localStorage.getItem(CLIENT_STORAGE_KEY) || '').trim();
   if (fromStorage) {
+    // Migrate old random device IDs (e.g. client-ab12cd34) to the shared channel.
+    if (/^client-[a-z0-9]{8}$/i.test(fromStorage)) {
+      localStorage.setItem(CLIENT_STORAGE_KEY, DEFAULT_SHARED_CLIENT_ID);
+      return DEFAULT_SHARED_CLIENT_ID;
+    }
     return fromStorage;
   }
 
-  const generated = buildClientId();
-  localStorage.setItem(CLIENT_STORAGE_KEY, generated);
-  return generated;
+  localStorage.setItem(CLIENT_STORAGE_KEY, DEFAULT_SHARED_CLIENT_ID);
+  return DEFAULT_SHARED_CLIENT_ID;
 }
 
 function getScopeQueryString(includeRole = true) {
@@ -2278,6 +2280,57 @@ function formatClockTime(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '--';
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function getDashboardCacheKey(clientId) {
+  const safeId = String(clientId || DEFAULT_SHARED_CLIENT_ID).trim() || DEFAULT_SHARED_CLIENT_ID;
+  return DASHBOARD_CACHE_KEY_PREFIX + safeId;
+}
+
+function saveDashboardCache(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object' || !snapshot.clientId) {
+    return;
+  }
+
+  const toStore = {
+    clientId: snapshot.clientId,
+    config: snapshot.config || null,
+    activeAlert: snapshot.activeAlert || null,
+    alertHistory: Array.isArray(snapshot.alertHistory) ? snapshot.alertHistory : [],
+    lastUpdatedAt: snapshot.lastUpdatedAt || null,
+    cachedAt: new Date().toISOString()
+  };
+
+  try {
+    localStorage.setItem(getDashboardCacheKey(snapshot.clientId), JSON.stringify(toStore));
+  } catch {
+    // Ignore cache write failures (quota/private mode).
+  }
+}
+
+function loadDashboardCache(clientId) {
+  try {
+    const raw = localStorage.getItem(getDashboardCacheKey(clientId));
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    return {
+      clientId: parsed.clientId || clientId,
+      config: parsed.config || null,
+      activeAlert: parsed.activeAlert || null,
+      alertHistory: Array.isArray(parsed.alertHistory) ? parsed.alertHistory : [],
+      lastUpdatedAt: parsed.lastUpdatedAt || null,
+      reason: 'cached-state'
+    };
+  } catch {
+    return null;
+  }
 }
 
 function applyClientConfig(config) {
@@ -2717,6 +2770,13 @@ function applyRealtimeState(payload) {
   }
 
   updateStaffDashboard(currentActiveAlert, latestHistory, payload.lastUpdatedAt);
+  saveDashboardCache({
+    clientId: currentClientId,
+    config: payload.config || clientConfig,
+    activeAlert: currentActiveAlert,
+    alertHistory: latestHistory,
+    lastUpdatedAt: payload.lastUpdatedAt || null
+  });
 }
 
 function connectRealtimeStream() {
@@ -2749,10 +2809,19 @@ function connectRealtimeStream() {
 
 async function refreshBootstrap() {
   const response = await apiRequest('/api/bootstrap' + getScopeQueryString(false));
-  if (!response.ok || !response.data) {
-    return;
+  if (response.ok && response.data) {
+    applyRealtimeState(response.data);
+    return true;
   }
-  applyRealtimeState(response.data);
+
+  const cached = loadDashboardCache(currentClientId);
+  if (cached) {
+    applyRealtimeState(cached);
+    setRealtimeStatus(false, 'Showing last saved dashboard data while reconnecting.');
+    return true;
+  }
+
+  return false;
 }
 
 // ─── LOGIN ───
@@ -3181,7 +3250,10 @@ document.addEventListener('click', event => {
 
 (async function bootstrapClientState() {
   currentClientId = resolveClientId();
-  await refreshBootstrap();
+  const restored = await refreshBootstrap();
+  if (!restored) {
+    setRealtimeStatus(false, 'No saved dashboard data yet. Connect and send an alert to start history.');
+  }
 })();
 </script>
 </body>
