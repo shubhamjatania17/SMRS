@@ -745,6 +745,24 @@ function clearDashboardData(clientId) {
   };
 }
 
+function clearResolvedDashboardData(clientId) {
+  const tenant = getTenantState(clientId);
+  const clearedAt = nowIso();
+  const beforeCount = Array.isArray(tenant.alertHistory) ? tenant.alertHistory.length : 0;
+
+  tenant.alertHistory = (tenant.alertHistory || []).filter(alert => alert && alert.status === 'active');
+  const removedCount = Math.max(0, beforeCount - tenant.alertHistory.length);
+
+  tenant.lastUpdatedAt = clearedAt;
+  state.lastUpdatedAt = clearedAt;
+  saveState(state);
+
+  return {
+    clearedAt,
+    removedCount
+  };
+}
+
 function getAlertAgeSeconds(alert) {
   if (!alert || !alert.createdAt) {
     return 0;
@@ -999,6 +1017,36 @@ async function routeRequest(req, res) {
       ok: true,
       message: 'Dashboard data cleared',
       clearedAt: result.clearedAt,
+      ...getSnapshot(clientId)
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/dashboard/clear-resolved') {
+    const body = await readBody(req).catch(error => ({ error }));
+    if (body.error) {
+      sendJson(res, 400, { ok: false, message: 'Invalid JSON body' });
+      return;
+    }
+
+    const role = normalizeRole(body.role || '');
+    if (role !== 'staff' && role !== 'admin') {
+      sendJson(res, 403, {
+        ok: false,
+        message: 'Only staff/admin can clear resolved incidents'
+      });
+      return;
+    }
+
+    const clientId = getClientIdFromRequest(requestUrl, body, req);
+    const result = clearResolvedDashboardData(clientId);
+
+    broadcastSnapshot(clientId, 'dashboard-resolved-cleared');
+    sendJson(res, 200, {
+      ok: true,
+      message: 'Resolved incidents cleared',
+      clearedAt: result.clearedAt,
+      removedCount: result.removedCount,
       ...getSnapshot(clientId)
     });
     return;

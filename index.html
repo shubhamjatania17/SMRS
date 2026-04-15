@@ -2038,6 +2038,7 @@ body::before {
         <div class="card-head">
           <div class="card-head-title">Incident Log</div>
           <div class="card-head-actions">
+            <button type="button" class="card-head-button" onclick="clearResolvedOnly()">Clear Resolved Only</button>
             <button type="button" class="card-head-button" onclick="clearDashboardData()">Clear Data</button>
             <div class="card-head-action" id="client-id-badge">Client: --</div>
           </div>
@@ -3114,6 +3115,40 @@ async function clearDashboardData() {
     applyRealtimeState(response.data);
   }
   showToast('Dashboard data cleared');
+}
+
+async function clearResolvedOnly() {
+  if (!isStaffDashboardOnlyRole(selectedRole)) {
+    showToast('Only admin and staff can clear resolved incidents');
+    return;
+  }
+
+  const confirmed = window.confirm('Clear only resolved incidents for this client workspace? Active incidents will remain.');
+  if (!confirmed) {
+    return;
+  }
+
+  const response = await apiRequest('/api/dashboard/clear-resolved', {
+    method: 'POST',
+    body: JSON.stringify({
+      role: selectedRole,
+      clientId: currentClientId
+    })
+  });
+
+  if (!response.ok) {
+    showToast((response.data && response.data.message) || 'Unable to clear resolved incidents');
+    return;
+  }
+
+  if (response.data) {
+    applyRealtimeState(response.data);
+    const removedCount = Number(response.data.removedCount || 0);
+    showToast(removedCount > 0 ? `Removed ${removedCount} resolved incident${removedCount === 1 ? '' : 's'}` : 'No resolved incidents to clear');
+    return;
+  }
+
+  showToast('Resolved incidents cleared');
 }
 
 // ─── LOCATION SEARCH ───
