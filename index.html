@@ -2168,7 +2168,8 @@ let userName = '';
 let currentClientId = '';
 let latestHistory = [];
 let currentActiveAlert = null;
-let streamConnection = null;
+let realtimePollTimerId = null;
+let lastRealtimeSignature = '';
 let alertTimerInterval = null;
 let alertSeconds = 0;
 let alertBaseTime = Date.now();
@@ -2312,6 +2313,22 @@ function formatClockTime(iso) {
 function getDashboardCacheKey(clientId) {
   const safeId = String(clientId || DEFAULT_SHARED_CLIENT_ID).trim() || DEFAULT_SHARED_CLIENT_ID;
   return DASHBOARD_CACHE_KEY_PREFIX + safeId;
+}
+
+function getRealtimeStateSignature(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return '';
+  }
+
+  const activeAlert = payload.activeAlert || null;
+  const activeSignature = activeAlert
+    ? [activeAlert.id || '', activeAlert.status || '', activeAlert.updatedAt || ''].join(':')
+    : 'none';
+  const historySignature = Array.isArray(payload.alertHistory)
+    ? payload.alertHistory.map(item => [item.id || '', item.status || '', item.updatedAt || ''].join(':')).join('|')
+    : '';
+
+  return [payload.clientId || '', payload.lastUpdatedAt || '', activeSignature, historySignature].join('||');
 }
 
 function saveDashboardCache(snapshot) {
@@ -2805,6 +2822,7 @@ function applyRealtimeState(payload) {
   }
 
   updateStaffDashboard(currentActiveAlert, latestHistory, payload.lastUpdatedAt);
+  lastRealtimeSignature = getRealtimeStateSignature(payload);
   saveDashboardCache({
     clientId: currentClientId,
     config: payload.config || clientConfig,
@@ -2815,37 +2833,30 @@ function applyRealtimeState(payload) {
 }
 
 function connectRealtimeStream() {
-  if (streamConnection) {
-    streamConnection.close();
-    streamConnection = null;
+  if (realtimePollTimerId) {
+    clearInterval(realtimePollTimerId);
+    realtimePollTimerId = null;
   }
 
-  const streamUrl = API_BASE + '/api/stream' + getScopeQueryString(false);
-  streamConnection = new EventSource(streamUrl);
-
-  streamConnection.addEventListener('state:update', event => {
-    try {
-      const payload = JSON.parse(event.data || '{}');
-      applyRealtimeState(payload);
-      setRealtimeStatus(true);
-    } catch {
-      setRealtimeStatus(false, 'Invalid realtime payload received.');
-    }
-  });
-
-  streamConnection.onopen = () => {
-    setRealtimeStatus(true);
+  const syncRealtimeState = async () => {
+    await refreshBootstrap();
   };
 
-  streamConnection.onerror = () => {
-    setRealtimeStatus(false, 'Connection lost. Auto-reconnecting...');
-  };
+  syncRealtimeState();
+  realtimePollTimerId = setInterval(syncRealtimeState, 3000);
 }
 
 async function refreshBootstrap() {
   const response = await apiRequest('/api/bootstrap' + getScopeQueryString(false));
   if (response.ok && response.data) {
-    applyRealtimeState(response.data);
+    const nextSignature = getRealtimeStateSignature(response.data);
+    if (nextSignature !== lastRealtimeSignature) {
+      applyRealtimeState(response.data);
+    } else {
+      currentClientId = response.data.clientId || currentClientId;
+    }
+
+    setRealtimeStatus(true, 'Live sync running every few seconds.');
     return true;
   }
 
@@ -2855,6 +2866,8 @@ async function refreshBootstrap() {
     setRealtimeStatus(false, 'Showing last saved dashboard data while reconnecting.');
     return true;
   }
+
+  setRealtimeStatus(false, 'Unable to reach the server. Retrying...');
 
   return false;
 }
@@ -3167,6 +3180,13 @@ function setSelectedLocation(location, announce = true) {
   }
 }
 
+function stopRealtimeSync() {
+  if (realtimePollTimerId) {
+    clearInterval(realtimePollTimerId);
+    realtimePollTimerId = null;
+  }
+}
+
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -3327,9 +3347,7 @@ function showToast(msg) {
 }
 
 window.addEventListener('beforeunload', () => {
-  if (streamConnection) {
-    streamConnection.close();
-  }
+  stopRealtimeSync();
 });
 
 document.addEventListener('click', event => {
