@@ -34,31 +34,7 @@ The system currently uses file-based persistence (`data/state.json`) and support
 
 ## MVP Link
 
-<https://medresponse.onrender.com>
-
-(GITHUB PAGE: <https://shubhamjatania17.github.io/SMRS/>)
-
-## Vercel Deployment
-
-The project is now split into a static frontend plus serverless API routes, so it can be deployed on Vercel without changing the user flow.
-
-### Required setup
-
-1. Import the repository into Vercel.
-2. Add a Redis/KV integration in Vercel so alert state persists across serverless invocations.
-3. Deploy from the repository root.
-
-### What is already handled
-
-- `index.html` stays as the static app shell.
-- `/api/*` endpoints are handled by Vercel functions.
-- Realtime dashboard sync uses polling, which works in serverless environments.
-- Local development still works with `node server.js` and the existing file-based state fallback.
-
-### Notes
-
-- If the KV/Redis integration is missing, local development will still work, but deployed state will not persist correctly.
-- The app keeps using the shared `clientId` channel, so dashboards on the same client workspace stay in sync.
+<https://medresponse-lemon.vercel.app/>
 
 ## Roadmap Ideas
 
